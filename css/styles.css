@@ -146,6 +146,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
   border-radius: 18px; padding: 12px; box-shadow: var(--shadow); animation: rise 0.18s;
 }
 .inspector[hidden] { display: none; }
+.inspector { max-height: calc(100% - 24px); overflow-y: auto; transition: opacity 0.15s; }
+.inspector.pos-tl { right: auto; left: 12px; top: 56px; }
+.inspector.pos-br { top: auto; bottom: 12px; }
+.inspector.pos-bl { top: auto; bottom: 64px; right: auto; left: 12px; }
+.stage.dragging .inspector { opacity: 0; pointer-events: none; }
 .insp-head { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
 .insp-head input { font-weight: 700; }
 .swatch-row { display: flex; flex-wrap: wrap; gap: 5px; margin: 2px 0 8px; }
@@ -199,7 +204,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
   .tile { flex: none; width: 96px; touch-action: pan-x; }
   .tile svg { height: 44px; }
   .shelf-hint { display: none; }
-  .inspector { top: auto; bottom: 64px; right: 8px; left: 8px; width: auto; }
+  .inspector, .inspector.pos-tl, .inspector.pos-br, .inspector.pos-bl { top: auto; bottom: 64px; right: 8px; left: 8px; width: auto; max-height: 40%; padding: 10px; }
+  .inspector .insp-head { margin-bottom: 6px; }
+  .inspector .lbl { margin-bottom: 4px; }
+  .inspector .swatch-row { flex-wrap: nowrap; overflow-x: auto; }
+  .inspector .sw { flex: none; }
+  .floor-row { grid-template-columns: repeat(6, 1fr); }
+  .floor-sw svg { height: 26px; }
+  .inspector.pos-top { top: 52px; bottom: auto; }
   .hud.bottom-left { bottom: 8px; left: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {

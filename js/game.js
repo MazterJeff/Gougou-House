@@ -341,6 +341,7 @@
     ui.view = { x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k, w: v.w * k, h: v.h * k };
     applyView();
     draw();
+    placeInspector();
   }
 
   function toPlan(e) {
@@ -474,6 +475,7 @@
     svg.addEventListener('pointermove', (e) => {
       const d = ui.drag;
       if (!d) return;
+      if (!d.moved && d.mode !== 'pan') setDragging(true);
       d.moved = true;
       if (d.mode === 'pan') {
         ui.view = { ...d.orig, x: d.orig.x - (e.clientX - d.sx) * d.upp, y: d.orig.y - (e.clientY - d.sy) * d.upp };
@@ -502,11 +504,13 @@
       const moved = ui.drag.moved && ui.drag.mode !== 'pan';
       ui.drag = null;
       svg.classList.remove('panning');
+      setDragging(false);
       if (moved) {
         commit();
         renderInspector();
       }
       draw();
+      placeInspector();
     };
     svg.addEventListener('pointerup', end);
     svg.addEventListener('pointercancel', end);
@@ -553,6 +557,7 @@
       t.chip.textContent = t.obj.name;
       document.body.appendChild(t.chip);
       document.body.classList.add('dragging-tile');
+      setDragging(true);
     }
     const over = overSvg(e);
     t.chip.style.transform = `translate(${e.clientX + 12}px, ${e.clientY + 12}px)`;
@@ -584,6 +589,7 @@
     setTimeout(() => (ui.swallowClick = false), 0);
     t.chip.remove();
     document.body.classList.remove('dragging-tile');
+    setDragging(false);
     if (t.inPlan) placed(t.obj);
     else draw();
   });
@@ -630,7 +636,10 @@
         case 'redo': return redo();
         case 'zoom-in': return zoom(1 / 1.25);
         case 'zoom-out': return zoom(1.25);
-        case 'fit': fit(); return draw();
+        case 'fit':
+          fit();
+          draw();
+          return placeInspector();
         case 'rotate': return rotate(o);
         case 'dup': return duplicate(o);
         case 'del': return remove(o);
@@ -709,6 +718,7 @@
       if (k === 'ArrowUp') o.y = r2(o.y - step);
       if (k === 'ArrowDown') o.y = r2(o.y + step);
       draw();
+      placeInspector();
       clearTimeout(ui.nudgeTimer);
       ui.nudgeTimer = setTimeout(commit, 400); // a burst of nudges = one undo step
     }
@@ -720,6 +730,7 @@
       if (ui.svg && ui.svg.isConnected) {
         fit();
         draw();
+        placeInspector();
       }
     }, 150)
   );
@@ -761,6 +772,56 @@
         <button class="btn sm" data-act="dup" title="Copy (Ctrl+D)">⧉ Copy</button>
         <button class="btn sm danger" data-act="del" title="Delete (Del)">🗑</button>
       </div>`;
+    placeInspector();
+  }
+
+  /** Hide the panel while something is being dragged, so it never covers the piece in your hand. */
+  function setDragging(on) {
+    const stage = ui.root && ui.root.querySelector('.stage');
+    if (stage) stage.classList.toggle('dragging', on);
+  }
+
+  /** Park the panel in whichever corner covers the selected piece the least. */
+  const SPOTS = { wide: ['pos-tr', 'pos-tl', 'pos-br', 'pos-bl'], narrow: ['pos-bottom', 'pos-top'] };
+  function placeInspector() {
+    const el = ui.root && ui.root.querySelector('#inspector');
+    const target = ui.sel && ui.svg && ui.svg.querySelector(`[data-id="${ui.sel}"]`);
+    if (!el || el.hidden || !target) return;
+    const box = target.getBoundingClientRect();
+    const spots = window.matchMedia('(max-width: 760px)').matches ? SPOTS.narrow : SPOTS.wide;
+    const all = [...SPOTS.wide, ...SPOTS.narrow];
+    let best = spots[0], bestArea = Infinity;
+    for (const spot of spots) {
+      el.classList.remove(...all);
+      el.classList.add(spot);
+      const r = el.getBoundingClientRect();
+      const m = 12;
+      const ox = Math.max(0, Math.min(r.right + m, box.right) - Math.max(r.left - m, box.left));
+      const oy = Math.max(0, Math.min(r.bottom + m, box.bottom) - Math.max(r.top - m, box.top));
+      if (ox * oy < bestArea) [best, bestArea] = [spot, ox * oy];
+      if (!bestArea) break;
+    }
+    el.classList.remove(...all);
+    el.classList.add(best);
+    // Still covered (small screens)? Once the pointer is released, slide the plan so the piece sits in the open area.
+    if (bestArea > 0 && !ui.drag && !ui.tile) {
+      const r = el.getBoundingClientRect(), st = ui.svg.getBoundingClientRect();
+      const free = [
+        { x: st.left, y: st.top, w: r.left - st.left, h: st.height },
+        { x: r.right, y: st.top, w: st.right - r.right, h: st.height },
+        { x: st.left, y: st.top, w: st.width, h: r.top - st.top },
+        { x: st.left, y: r.bottom, w: st.width, h: st.bottom - r.bottom },
+      ]
+        .filter((f) => f.w > box.width + 24 && f.h > box.height + 24)
+        .sort((a, b) => b.w * b.h - a.w * a.h)[0];
+      if (free) {
+        const upp = unitsPerPx();
+        const dx = free.x + free.w / 2 - (box.left + box.width / 2), dy = free.y + free.h / 2 - (box.top + box.height / 2);
+        ui.view = { ...ui.view, x: ui.view.x - dx * upp, y: ui.view.y - dy * upp };
+        applyView();
+        draw();
+      }
+    }
   }
 
   function renderInspectorLive() {
