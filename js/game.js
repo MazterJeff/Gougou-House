@@ -118,6 +118,7 @@
             <button class="icon-btn" data-act="undo" title="Undo (Ctrl+Z)">↶</button>
             <button class="icon-btn" data-act="redo" title="Redo (Ctrl+Shift+Z)">↷</button>
             <button class="btn sm ${s.dog ? 'on' : 'ghost'}" data-act="dog" title="Show or hide Gougou">🐶 <span>Gougou</span></button>
+            <button class="btn sm ai-btn" data-act="ai" title="Ask the AI helper to change or check your home">✨ <span>Ask AI</span></button>
             <button class="btn sm ghost" data-act="export-png" title="Save a picture of this design">📸 <span>Picture</span></button>
             <button class="icon-btn" data-act="settings" title="Settings & backup">⚙️</button>
           </div>
@@ -197,6 +198,10 @@
   /* ================================================================== */
 
   /** Items that physically overlap (rugs, doors & windows excluded). */
+  /** Pairs that are meant to overlap a little (a chair tucked under its desk). */
+  const TUCKS = [['desk', 'officechair']];
+  const tucked = (a, b) => TUCKS.some(([x, y]) => (a.kind === x && b.kind === y) || (a.kind === y && b.kind === x));
+
   function overlaps(p) {
     const solid = p.items.filter((i) => ![0, 3].includes(cat(i).layer ?? 1));
     const bad = new Set();
@@ -205,7 +210,7 @@
       const A = solid[a], fa = foot(A);
       for (let b = a + 1; b < solid.length; b++) {
         const B = solid[b], fb = foot(B);
-        if (A.x + eps < B.x + fb.w && B.x + eps < A.x + fa.w && A.y + eps < B.y + fb.h && B.y + eps < A.y + fa.h) {
+        if (!tucked(A, B) && A.x + eps < B.x + fb.w && B.x + eps < A.x + fa.w && A.y + eps < B.y + fb.h && B.y + eps < A.y + fa.h) {
           bad.add(A.id);
           bad.add(B.id);
         }
@@ -693,6 +698,7 @@
         case 'new-plan': return newPlanDialog();
         case 'plan-menu': return planMenu();
         case 'settings': return GG.app.settings();
+        case 'ai': return GG.assistant.toggle();
         case 'export-png': return exportPng();
       }
     };
@@ -893,6 +899,7 @@
   /* ================================================================== */
 
   function switchPlan(id) {
+    if (GG.assistant && id !== S().activePlan) GG.assistant.planChanged();
     S().activePlan = id;
     ui.sel = null;
     GG.store.save();
@@ -950,6 +957,7 @@
         <div class="menu-list">
           <button class="btn" data-m="dup">⧉ Make a copy</button>
           <button class="btn" data-m="share">💌 Copy a link to send</button>
+          <button class="btn" data-m="png">📸 Save a picture</button>
           <button class="btn" data-m="svg">⬇ Download as SVG</button>
           <button class="btn danger" data-m="del" ${S().plans.length < 2 ? 'disabled' : ''}>🗑 Delete this design</button>
         </div>`,
@@ -978,6 +986,9 @@
             addPlan(copy);
           } else if (b.dataset.m === 'share') {
             GG.app.sharePlan(p);
+          } else if (b.dataset.m === 'png') {
+            close();
+            exportPng();
           } else if (b.dataset.m === 'svg') {
             GG.util.download(`${slug(p.name)}.svg`, exportSvg(), 'image/svg+xml');
           } else if (b.dataset.m === 'del') {
@@ -1086,5 +1097,40 @@
     },
   };
 
-  GG.game = { render, addPlan };
+  /** Hooks for the AI assistant: it edits the plan directly, then records one undo step. */
+  const AI = {
+    plan,
+    find,
+    foot,
+    cat,
+    isRoom,
+    makeItem,
+    overlaps: () => overlaps(plan()),
+    /** Record the assistant's edits as an undo step and redraw everything. */
+    commit() {
+      commit();
+      if (ui.sel && !find(ui.sel)) ui.sel = null;
+      refresh();
+    },
+    select(id) {
+      ui.sel = find(id) ? id : null;
+      refresh();
+    },
+    addPlan,
+    setView(view) {
+      if (view !== S().view) {
+        S().view = view;
+        GG.store.save();
+        render(ui.root);
+      }
+    },
+    setWalls(mode) {
+      S().walls = mode;
+      GG.store.save();
+      if (is3d()) render(ui.root);
+    },
+    view: () => (is3d() ? '3d' : '2d'),
+  };
+
+  GG.game = { render, addPlan, ai: AI };
 })(window.GG);

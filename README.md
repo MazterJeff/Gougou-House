@@ -39,6 +39,29 @@ No installs and no accounts. Open it and play.
 5. Pieces that overlap get a red outline, and the counter in the top-left shows them as "bumping".
 6. **📸 Picture** saves a PNG: the 3D view as you see it, or the floor plan in 2D.
 
+### ✨ AI helper
+
+Press **✨ Ask AI** and type what you want, in plain words. For example:
+- *"Add a home office next to the bedroom with a window"*
+- *"Make the kitchen 2 ft wider"*
+- *"Furnish the living room"*
+- *"Put a door between the hallway and the bedroom"*
+- *"Check my layout for problems"*
+
+The helper is Claude (`claude-opus-5-5`). It reads your current design and changes it directly:
+- **Structure:** adds, moves, resizes and removes rooms; cuts doors and windows into walls.
+- **Furniture and floors:** places and rearranges furniture, recolors pieces and swaps floors.
+- **Starting points and views:** starts new designs and switches between 2D and 3D.
+- **Advice:** checks for overlaps, tight walkways, rooms without a door and bedrooms without a window.
+
+Furniture it adds lands in sensible spots: backs against the wall, chairs around the table, desk chair at the desk, nightstands beside the bed, coffee table in front of the sofa. Every change it makes can be undone with ↶.
+
+**Setup:** the first time, paste an Anthropic API key from [console.anthropic.com](https://console.anthropic.com/settings/keys).
+- The key is stored only in this browser and is sent only to Anthropic.
+- Use a key with a spending limit.
+- Requests are billed to your Anthropic account. A typical change costs a few cents.
+- **🔑** in the panel changes or forgets the key.
+
 ### Meet Gougou
 
 Gougou (a top-down shiba) wanders from room to room, walks *around* your furniture (never through it), naps on the dog bed if you give one, and has opinions about what you add ("Is that… for ME?! 🥹"). Click Gougou for a pat. The **🐶 Gougou** button hides or shows the pup.
@@ -60,7 +83,9 @@ To run it locally: `python3 -m http.server 8000`, then open http://localhost:800
 
 ## Project layout
 
-Plain HTML/CSS/JS with no build step. The only library is [three.js](https://threejs.org) r170 (MIT, in `vendor/`), converted into an ordinary script so the game also works when you open `index.html` directly from a folder.
+Plain HTML/CSS/JS with no build step. Two libraries are vendored in `vendor/`, each converted into an ordinary script so the game also works when you open `index.html` directly from a folder:
+- [three.js](https://threejs.org) r170 (MIT)
+- the official [Anthropic TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript) v0.133.0 (MIT), compiled from source
 
 ```
 index.html       page shell
@@ -72,10 +97,11 @@ js/textures.js   procedural floor, fabric, wood-grain and stone textures
 js/render.js     realistic top-down drawing for every piece of furniture and rug
 js/models3d.js   3D models for every piece (and for Gougou)
 js/view3d.js     the 3D view: walls, floors, lighting, camera, picking and dragging
-vendor/          three.js + OrbitControls
 js/dog.js        Gougou: pathfinding, wandering, napping, chatting
 js/game.js       the editor: shelf, drag & drop, undo, inspector, export
+js/assistant.js  the AI helper: chat panel, Claude tool loop, design tools
 js/app.js        boot, settings, backups, share links
+vendor/          three.js + OrbitControls, Anthropic SDK (browser builds)
 ```
 
 Want more furniture or another starter space? Add it to `js/data.js` and the game picks it up automatically. Gougou's lines live at the top of `js/dog.js`.
