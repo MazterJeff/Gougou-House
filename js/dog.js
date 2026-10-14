@@ -430,6 +430,16 @@
   }
 
   GG.dog = {
+    /** Snapshot for the 3D view. */
+    state() {
+      const now = performance.now();
+      return {
+        visible: !!(env && env.enabled() && dog.grid && dog.grid.cells.length && dog.placed),
+        x: dog.x, y: dog.y, angle: dog.angle, mode: dog.mode,
+        bubble: dog.bubble && now < dog.bubble.until ? dog.bubble.text : null,
+        hearts: dog.hearts > now,
+      };
+    },
     /** env: { svg(), plan(), upp(), enabled(), isDragging(), redraw() } */
     init(e) {
       env = e;

@@ -121,6 +121,17 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .empty-stage[hidden] { display: none; }
 .empty-stage p { max-width: 30ch; }
 
+/* 3D */
+.v3d { position: absolute; inset: 0; display: none; }
+.stage.mode-3d .v3d { display: block; }
+.stage.mode-3d #pl-svg { visibility: hidden; pointer-events: none; }
+.v3d-canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+.bubble3d { position: absolute; left: 0; top: 0; pointer-events: none; background: rgba(255, 255, 255, 0.96); color: #2f2c29; font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 999px; box-shadow: var(--shadow); white-space: nowrap; margin-top: -8px; }
+.bubble3d::after { content: ''; position: absolute; left: 50%; bottom: -6px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: rgba(255, 255, 255, 0.96); }
+.bubble3d[hidden] { display: none; }
+.hint3d { position: absolute; bottom: 14px; right: 14px; font-size: 12px; color: var(--ink-2); background: rgba(255, 253, 249, 0.85); border-radius: 999px; padding: 4px 12px; pointer-events: none; }
+.view-toggle button { min-width: 38px; font-weight: 800; }
+
 /* Gougou */
 #gg-dog .dog-sprite.walk .leg.a { animation: paw 0.3s ease-in-out infinite alternate; }
 #gg-dog .dog-sprite.walk .leg.b { animation: paw 0.3s ease-in-out infinite alternate-reverse; }
@@ -187,6 +198,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .tpl-blank { display: grid; place-items: center; font-size: 34px; border: 2px dashed var(--line-2); }
 
 /* ---------- phones: shelf becomes a bottom drawer ---------- */
+@media (max-width: 420px) {
+  .tools [data-act="redo"] { display: none; }
+  .tools, .plan-pick { gap: 2px !important; }
+  .icon-btn, .tools .btn.sm { width: 28px !important; height: 28px !important; }
+}
 @media (max-width: 760px) {
   :root { --bar-h: 52px; }
   .bar { gap: 4px; padding: 0 6px; }
@@ -196,6 +212,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
   .tools { gap: 3px; flex: none; }
   .icon-btn { width: 30px; height: 30px; font-size: 14px; }
   .tools .btn.sm { padding: 0; width: 30px; height: 30px; border-radius: 50%; }
+  .hint3d { display: none; }
+  .view-toggle { flex-wrap: nowrap; flex: none; padding: 2px; }
+  .view-toggle button { min-width: 28px; padding: 4px 6px; font-size: 12px; }
+  .plan-pick select { min-width: 70px; }
   .game-body { flex-direction: column-reverse; }
   .shelf { width: auto; height: 196px; border-right: 0; border-top: 1px solid var(--line); }
   .shelf-tabs { display: flex; overflow-x: auto; padding: 6px; gap: 2px; scrollbar-width: none; }

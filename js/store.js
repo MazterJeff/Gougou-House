@@ -10,7 +10,7 @@
 
   function defaults() {
     const plan = newPlan('studio1br', 'Our first home', true);
-    return { version: 2, unit: 'ft', dog: true, plans: [plan], activePlan: plan.id };
+    return { version: 2, unit: 'ft', dog: true, view: '3d', walls: 'cut', plans: [plan], activePlan: plan.id };
   }
 
   /** Keep only what the game uses; older saves (v1) also carried quiz/wishlist/etc. */
@@ -26,6 +26,8 @@
       version: 2,
       unit: saved.unit === 'm' ? 'm' : 'ft',
       dog: saved.dog !== false,
+      view: saved.view === '2d' ? '2d' : '3d',
+      walls: ['cut', 'up', 'down'].includes(saved.walls) ? saved.walls : 'cut',
       plans,
       activePlan: plans.some((p) => p.id === saved.activePlan) ? saved.activePlan : plans[0].id,
     };

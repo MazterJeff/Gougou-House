@@ -15,6 +15,16 @@
   const ui = { sel: null, view: null, viewPlan: null, drag: null, svg: null, root: null, cat: 'Living', raf: 0, hist: null, tile: null };
 
   const S = () => GG.store.state;
+  /** 3D needs WebGL + three.js; fall back to the flat plan otherwise. */
+  const has3d = (() => {
+    try {
+      return !!(window.THREE && document.createElement('canvas').getContext('webgl2'));
+    } catch {
+      return false;
+    }
+  })();
+  const is3d = () => has3d && S().view !== '2d';
+  const WALL_LABEL = { cut: '🧱 <span>Cutaway</span>', up: '🧱 <span>Walls up</span>', down: '🧱 <span>Walls down</span>' };
   const plan = () => S().plans.find((p) => p.id === S().activePlan) || S().plans[0];
   const find = (id) => id && (plan().rooms.find((r) => r.id === id) || plan().items.find((i) => i.id === id));
   const isRoom = (o) => !o.kind;
@@ -100,7 +110,11 @@
             <button class="icon-btn" data-act="plan-menu" title="Rename, copy, share or delete this design">⋯</button>
           </div>
           <span class="grow"></span>
+          <span class="seg view-toggle" title="Switch between the 3D view and the flat plan">
+            <button class="${is3d() ? 'on' : ''}" data-view="3d">3D</button><button class="${is3d() ? '' : 'on'}" data-view="2d">2D</button>
+          </span>
           <div class="tools">
+            ${is3d() ? `<button class="btn sm ghost" data-act="walls" title="Walls: cut away on the camera side, all up, or all down">${WALL_LABEL[S().walls || 'cut']}</button>` : ''}
             <button class="icon-btn" data-act="undo" title="Undo (Ctrl+Z)">↶</button>
             <button class="icon-btn" data-act="redo" title="Redo (Ctrl+Shift+Z)">↷</button>
             <button class="btn sm ${s.dog ? 'on' : 'ghost'}" data-act="dog" title="Show or hide Gougou">🐶 <span>Gougou</span></button>
@@ -120,9 +134,11 @@
             <p class="shelf-hint">Drag onto the plan — or tap to drop it in the middle.</p>
           </aside>
 
-          <div class="stage">
+          <div class="stage ${is3d() ? 'mode-3d' : ''}">
             <svg id="pl-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="v3d" id="v3d"></div>
             <div class="hud top-left" id="hud"></div>
+            ${is3d() ? '<div class="hint3d">Drag furniture to move it · drag the floor to spin · right-drag or two fingers to pan · scroll to zoom</div>' : ''}
             <div class="hud bottom-left">
               <button class="icon-btn" data-act="zoom-out" title="Zoom out">−</button>
               <button class="btn sm" data-act="fit" title="Fit to screen">Fit</button>
@@ -146,6 +162,12 @@
     bindUi(root);
     if (!ui.view || ui.viewPlan !== p.id) fit();
     else applyView();
+    if (is3d()) {
+      GG.view3d.setWallMode(S().walls || 'cut');
+      GG.view3d.mount(root.querySelector('#v3d'), API);
+      if (ui.view3dPlan !== p.id) GG.view3d.fit();
+      ui.view3dPlan = p.id;
+    } else if (window.GG.view3d) GG.view3d.unmount();
     refresh();
     updateUndo();
   }
@@ -269,6 +291,7 @@
   }
 
   function draw() {
+    if (is3d()) return GG.view3d.sync();
     if (ui.svg) ui.svg.innerHTML = markup(plan());
   }
   const drawSoon = () => {
@@ -399,10 +422,11 @@
 
   function dropAtCenter(o) {
     const v = ui.view;
+    const c = is3d() ? GG.view3d.target() : { x: v.x + v.w / 2, y: v.y + v.h / 2 };
     const f = foot(o);
     const step = isRoom(o) ? 0.5 : SNAP;
-    o.x = snap(v.x + v.w / 2 - f.w / 2, step);
-    o.y = snap(v.y + v.h / 2 - f.h / 2, step);
+    o.x = snap(c.x - f.w / 2, step);
+    o.y = snap(c.y - f.h / 2, step);
     (isRoom(o) ? plan().rooms : plan().items).push(o);
     placed(o);
   }
@@ -559,12 +583,13 @@
       document.body.classList.add('dragging-tile');
       setDragging(true);
     }
-    const over = overSvg(e);
+    const pt3 = is3d() && overSvg(e) ? GG.view3d.pick(e) : null;
+    const over = is3d() ? !!pt3 : overSvg(e);
     t.chip.style.transform = `translate(${e.clientX + 12}px, ${e.clientY + 12}px)`;
     t.chip.classList.toggle('hide', over);
     const list = isRoom(t.obj) ? plan().rooms : plan().items;
     if (over) {
-      const pt = toPlan(e);
+      const pt = pt3 || toPlan(e);
       const f = foot(t.obj);
       const step = isRoom(t.obj) ? 0.5 : SNAP;
       t.obj.x = snap(pt.x - f.w / 2, step);
@@ -606,7 +631,7 @@
 
     root.onclick = (e) => {
       if (ui.swallowClick) return;
-      const t = e.target.closest('[data-act],[data-add],[data-room],[data-cat],[data-unit],[data-color],[data-floor]');
+      const t = e.target.closest('[data-act],[data-add],[data-room],[data-cat],[data-unit],[data-color],[data-floor],[data-view]');
       if (!t) return;
       const d = t.dataset;
       const o = find(ui.sel);
@@ -626,6 +651,11 @@
         ui.cat = d.cat;
         return render(root);
       }
+      if (d.view) {
+        S().view = d.view;
+        GG.store.save();
+        return render(root);
+      }
       if (d.unit) {
         S().unit = d.unit;
         GG.store.save();
@@ -634,12 +664,21 @@
       switch (d.act) {
         case 'undo': return undo();
         case 'redo': return redo();
-        case 'zoom-in': return zoom(1 / 1.25);
-        case 'zoom-out': return zoom(1.25);
+        case 'zoom-in': return is3d() ? GG.view3d.zoom(0.8) : zoom(1 / 1.25);
+        case 'zoom-out': return is3d() ? GG.view3d.zoom(1.25) : zoom(1.25);
         case 'fit':
+          if (is3d()) return GG.view3d.fit();
           fit();
           draw();
           return placeInspector();
+        case 'walls': {
+          const order = ['cut', 'up', 'down'];
+          S().walls = order[(order.indexOf(S().walls || 'cut') + 1) % 3];
+          GG.store.save();
+          GG.view3d.setWallMode(S().walls);
+          t.innerHTML = WALL_LABEL[S().walls];
+          return;
+        }
         case 'rotate': return rotate(o);
         case 'dup': return duplicate(o);
         case 'del': return remove(o);
@@ -785,9 +824,10 @@
   const SPOTS = { wide: ['pos-tr', 'pos-tl', 'pos-br', 'pos-bl'], narrow: ['pos-bottom', 'pos-top'] };
   function placeInspector() {
     const el = ui.root && ui.root.querySelector('#inspector');
-    const target = ui.sel && ui.svg && ui.svg.querySelector(`[data-id="${ui.sel}"]`);
-    if (!el || el.hidden || !target) return;
-    const box = target.getBoundingClientRect();
+    if (!el || el.hidden || !ui.sel) return;
+    const target = is3d() ? null : ui.svg && ui.svg.querySelector(`[data-id="${ui.sel}"]`);
+    const box = is3d() ? GG.view3d.screenBox(ui.sel) : target && target.getBoundingClientRect();
+    if (!box) return;
     const spots = window.matchMedia('(max-width: 760px)').matches ? SPOTS.narrow : SPOTS.wide;
     const all = [...SPOTS.wide, ...SPOTS.narrow];
     let best = spots[0], bestArea = Infinity;
@@ -804,7 +844,7 @@
     el.classList.remove(...all);
     el.classList.add(best);
     // Still covered (small screens)? Once the pointer is released, slide the plan so the piece sits in the open area.
-    if (bestArea > 0 && !ui.drag && !ui.tile) {
+    if (bestArea > 0 && !ui.drag && !ui.tile && !is3d()) {
       const r = el.getBoundingClientRect(), st = ui.svg.getBoundingClientRect();
       const free = [
         { x: st.left, y: st.top, w: r.left - st.left, h: st.height },
@@ -980,6 +1020,12 @@
   }
 
   function exportPng() {
+    if (is3d()) {
+      fetch(GG.view3d.snapshot())
+        .then((r) => r.blob())
+        .then((blob) => GG.util.download(`${slug(plan().name)}-3d.png`, blob));
+      return toast('📸 Picture saved!');
+    }
     const img = new Image();
     const url = URL.createObjectURL(new Blob([exportSvg()], { type: 'image/svg+xml' }));
     img.onload = () => {
@@ -1002,9 +1048,43 @@
     plan,
     upp: unitsPerPx,
     enabled: () => S().dog && ui.svg && ui.svg.isConnected,
-    isDragging: () => !!(ui.drag && ui.drag.mode !== 'pan') || !!(ui.tile && ui.tile.inPlan),
+    isDragging: () => !!(ui.drag && ui.drag.mode !== 'pan') || !!(ui.tile && ui.tile.inPlan) || !!ui.drag3d,
     redraw: draw,
   });
+
+  const API = {
+    plan,
+    find,
+    sel: () => ui.sel,
+    overlaps: () => overlaps(plan()),
+    select(id) {
+      ui.sel = id;
+      GG.view3d.sync();
+      renderInspector();
+    },
+    dragStart() {
+      ui.drag3d = true;
+      setDragging(true);
+    },
+    dragMove() {
+      GG.view3d.sync();
+      renderInspectorLive();
+    },
+    dragEnd(moved) {
+      ui.drag3d = false;
+      setDragging(false);
+      if (moved) commit();
+      GG.view3d.sync();
+      renderInspector();
+    },
+    focusName() {
+      const input = ui.sel && ui.root.querySelector('#inspector [data-prop="name"]');
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    },
+  };
 
   GG.game = { render, addPlan };
 })(window.GG);

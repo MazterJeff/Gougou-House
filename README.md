@@ -2,7 +2,9 @@
 
 **A cozy little game for decorating your future home together.** Pick a space, lay real-looking floors, then drag in sofas, beds, rugs and plants at their real sizes. **Gougou the pup 🐶** explores every room you make.
 
-Everything is drawn like a top-down interior render:
+**Play in 3D:** a dollhouse view with real walls (with cut-outs for the doors and windows), sunlight and soft shadows, glowing lamps and 3D furniture. Spin around the room and drag pieces across the floor. Switch to **2D** any time for the precise top-down plan.
+
+Everything is drawn with real materials:
 - **Floors:** wood planks with grain, tile, marble, concrete, carpet, decking and grass.
 - **Furniture:** fabric weave and wood grain, with soft shadows.
 - **Rugs:** Persian, Berber, striped, shag, round jute and a kilim runner. Each one moves like any other piece.
@@ -15,9 +17,11 @@ No installs and no accounts. Open it and play.
 
 1. **Open `index.html`** in your browser (or host it, see below).
 2. You start in an **empty 1-bedroom**. Pick a category on the shelf (🛋️ Living, 🛏️ Bedroom, 🍳 Kitchen, 🐶 Pets…) and **drag** a piece onto the plan. You can also tap it to drop it in the middle.
-3. **Arrange things:**
+3. **Arrange things** (in 3D or 2D):
+   - **3D camera:** drag the floor to spin around, right-drag (or use two fingers) to pan, scroll or pinch to zoom.
+   - **🧱 Walls:** cycles between *Cutaway* (walls facing you are cut low, like a dollhouse), *Walls up* and *Walls down*.
    - **Move:** drag a piece. Rooms carry their furniture with them; hold <kbd>Alt</kbd> to move a room on its own.
-   - **Resize:** drag the orange dot.
+   - **Resize:** drag the orange dot (in 2D), or type a width and depth in the panel.
    - **Rotate:** <kbd>R</kbd>.
    - **Recolor:** pick a fabric, wood finish or rug color in the little panel that pops up.
    - **Change a floor:** click a room and pick one of the 11 floors (light oak, walnut, gray oak, white tile, terracotta, checkerboard, marble, concrete, carpet, wood deck, grass).
@@ -33,7 +37,7 @@ No installs and no accounts. Open it and play.
 
    Each comes **empty** (you furnish it) or **already furnished**.
 5. Pieces that overlap get a red outline, and the counter in the top-left shows them as "bumping".
-6. **📸 Picture** saves a PNG of your design.
+6. **📸 Picture** saves a PNG: the 3D view as you see it, or the floor plan in 2D.
 
 ### Meet Gougou
 
@@ -56,7 +60,7 @@ To run it locally: `python3 -m http.server 8000`, then open http://localhost:800
 
 ## Project layout
 
-Plain HTML/CSS/JS with no build step and no dependencies.
+Plain HTML/CSS/JS with no build step. The only library is [three.js](https://threejs.org) r170 (MIT, in `vendor/`), converted into an ordinary script so the game also works when you open `index.html` directly from a folder.
 
 ```
 index.html       page shell
@@ -66,6 +70,9 @@ js/data.js       furniture catalog (real sizes, in inches), room types, starter 
 js/store.js      saved designs (localStorage)
 js/textures.js   procedural floor, fabric, wood-grain and stone textures
 js/render.js     realistic top-down drawing for every piece of furniture and rug
+js/models3d.js   3D models for every piece (and for Gougou)
+js/view3d.js     the 3D view: walls, floors, lighting, camera, picking and dragging
+vendor/          three.js + OrbitControls
 js/dog.js        Gougou: pathfinding, wandering, napping, chatting
 js/game.js       the editor: shelf, drag & drop, undo, inspector, export
 js/app.js        boot, settings, backups, share links

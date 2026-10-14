@@ -317,6 +317,12 @@
     label: (name) => (DEFS[name] || DEFS.oak).label,
     /** Self-contained <defs> (all generated textures + gradients) for exporting a picture. */
     exportDefs: () => `<defs>${STATIC_DEFS}${Object.keys(cache).map(patternMarkup).join('')}</defs>`,
+    /** Raw texture for the 3D view: data URL plus the real-world size (feet) one tile covers. */
+    info(name) {
+      if (!DEFS[name]) name = 'oak';
+      use(name);
+      return { url: cache[name], w: DEFS[name].ftW || DEFS[name].ft, h: DEFS[name].ft };
+    },
     init() {
       defsHost();
       ['oak', 'tile', 'o-fabric', 'o-grain', 'stone'].forEach(use);
