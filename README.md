@@ -1,6 +1,13 @@
 # 🏡 Gougou House
 
-**A cozy little game for decorating your future home together.** Pick a space, drag in sofas, beds, rugs and plants at their real sizes, and watch **Gougou the pup 🐶** explore every room you make.
+**A cozy little game for decorating your future home together.** Pick a space, lay real-looking floors, then drag in sofas, beds, rugs and plants at their real sizes. **Gougou the pup 🐶** explores every room you make.
+
+Everything is drawn like a top-down interior render:
+- **Floors:** wood planks with grain, tile, marble, concrete, carpet, decking and grass.
+- **Furniture:** fabric weave and wood grain, with soft shadows.
+- **Rugs:** Persian, Berber, striped, shag, round jute and a kilim runner. Each one moves like any other piece.
+
+The textures are generated in the browser, so there are no image files to download.
 
 No installs and no accounts. Open it and play.
 
@@ -12,7 +19,8 @@ No installs and no accounts. Open it and play.
    - **Move:** drag a piece. Rooms carry their furniture with them; hold <kbd>Alt</kbd> to move a room on its own.
    - **Resize:** drag the orange dot.
    - **Rotate:** <kbd>R</kbd>.
-   - **Recolor:** pick a swatch in the little panel that pops up.
+   - **Recolor:** pick a fabric, wood finish or rug color in the little panel that pops up.
+   - **Change a floor:** click a room and pick one of the 11 floors (light oak, walnut, gray oak, white tile, terracotta, checkerboard, marble, concrete, carpet, wood deck, grass).
    - **Delete / copy:** <kbd>Del</kbd> deletes, <kbd>Ctrl/⌘ D</kbd> makes a copy.
    - **Undo / redo:** <kbd>Ctrl/⌘ Z</kbd> undoes, <kbd>Ctrl/⌘ Shift Z</kbd> redoes.
    - **Zoom and pan:** scroll to zoom, drag empty space to pan.
@@ -29,7 +37,7 @@ No installs and no accounts. Open it and play.
 
 ### Meet Gougou
 
-Gougou wanders from room to room, walks *around* your furniture (never through it), naps on the dog bed if you give one, and has opinions about what you add ("Is that… for ME?! 🥹"). Click Gougou for a pat. The **🐶 Gougou** button hides or shows the pup.
+Gougou (a top-down shiba) wanders from room to room, walks *around* your furniture (never through it), naps on the dog bed if you give one, and has opinions about what you add ("Is that… for ME?! 🥹"). Click Gougou for a pat. The **🐶 Gougou** button hides or shows the pup.
 
 ## Playing on two devices
 
@@ -56,6 +64,8 @@ css/styles.css   all styling (desktop + phone)
 js/util.js       helpers: units, modal, toast, share links, mascot
 js/data.js       furniture catalog (real sizes, in inches), room types, starter spaces
 js/store.js      saved designs (localStorage)
+js/textures.js   procedural floor, fabric, wood-grain and stone textures
+js/render.js     realistic top-down drawing for every piece of furniture and rug
 js/dog.js        Gougou: pathfinding, wandering, napping, chatting
 js/game.js       the editor: shelf, drag & drop, undo, inspector, export
 js/app.js        boot, settings, backups, share links

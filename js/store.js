@@ -20,6 +20,7 @@
     plans.forEach((p) => {
       p.rooms = p.rooms || [];
       p.items = p.items || [];
+      p.rooms.forEach((r) => (r.floor = r.floor || GG.data.floorFor(r.name, r.outdoor)));
     });
     return {
       version: 2,

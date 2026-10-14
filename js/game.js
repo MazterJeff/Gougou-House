@@ -7,12 +7,10 @@
   const r2 = (v) => Math.round(v * 100) / 100;
 
   const TABS = [
-    ['Rooms', '🚪'], ['Living', '🛋️'], ['Bedroom', '🛏️'], ['Dining', '🍽️'], ['Kitchen', '🍳'],
+    ['Rooms', '🚪'], ['Living', '🛋️'], ['Decor', '🪴'], ['Bedroom', '🛏️'], ['Dining', '🍽️'], ['Kitchen', '🍳'],
     ['Bath', '🛁'], ['Work', '💻'], ['Outdoor', '🌳'], ['Pets', '🐶'], ['Structure', '🧱'],
   ];
   const ROOM_SIZES = { Closet: [6, 4], Bathroom: [8, 7], Hallway: [4, 12], Balcony: [12, 5], Laundry: [6, 6], Yard: [30, 15], Kitchen: [12, 10] };
-  const ITEM_COLORS = ['#c9b79c', '#e3dccf', '#a68a6d', '#5e5246', '#e8a868', '#d9825b', '#f2a5a0', '#8aa38b', '#5d8ca3', '#b9aed3', '#ffffff', '#3b3330'];
-  const ROOM_COLORS = ['#f6e7d7', '#e8efe1', '#f8e5e0', '#e6e9f4', '#dff0f2', '#f3ecd9', '#efedea', '#eadff2', '#fde9c9', '#dcebd3'];
 
   const ui = { sel: null, view: null, viewPlan: null, drag: null, svg: null, root: null, cat: 'Living', raf: 0, hist: null, tile: null };
 
@@ -155,7 +153,7 @@
   function itemTile(f) {
     const pad = 0.6;
     return `<button class="tile" data-add="${f.kind}" title="${esc(f.name)} · ${len(f.w)} × ${len(f.h)}">
-      <svg viewBox="${-f.w / 2 - pad} ${-f.h / 2 - pad} ${f.w + 2 * pad} ${f.h + 2 * pad}" preserveAspectRatio="xMidYMid meet">${shape({ ...f, rot: 0 }, false)}</svg>
+      <svg viewBox="${-f.w / 2 - pad} ${-f.h / 2 - pad} ${f.w + 2 * pad} ${f.h + 2 * pad}" preserveAspectRatio="xMidYMid meet"><g filter="${GG.render.shadowFor(f)}">${GG.render.item({ ...f, id: `tile-${f.kind}`, rot: 0 })}</g></svg>
       <span>${esc(f.name)}</span>
       <small>${len(f.w)} × ${len(f.h)}</small>
     </button>`;
@@ -163,9 +161,10 @@
 
   function roomTile(r, i) {
     const [w, h] = ROOM_SIZES[r.name] || [12, 12];
-    const k = 40 / Math.max(w, h);
     return `<button class="tile" data-room="${i}" title="${esc(r.name)} · ${len(w)} × ${len(h)}">
-      <svg viewBox="-2 -2 44 44"><rect x="${(40 - w * k) / 2}" y="${(40 - h * k) / 2}" width="${w * k}" height="${h * k}" fill="${r.color}" stroke="${r.outdoor ? '#7c8b5a' : '#3b3330'}" stroke-width="2.4" ${r.outdoor ? 'stroke-dasharray="4 3"' : ''}/></svg>
+      <svg viewBox="-1 -1 ${Math.max(w, h) + 2} ${Math.max(w, h) + 2}"><g transform="translate(${(Math.max(w, h) - w) / 2} ${(Math.max(w, h) - h) / 2})">
+        <rect width="${w}" height="${h}" fill="${GG.textures.use(r.floor)}"/>
+        <rect width="${w}" height="${h}" fill="none" stroke="${r.outdoor ? '#8a8f7a' : '#2f2c29'}" stroke-width="${r.outdoor ? 0.15 : 0.5}"/></g></svg>
       <span>${esc(r.name)}</span>
       <small>${len(w)} × ${len(h)}</small>
     </button>`;
@@ -174,63 +173,6 @@
   /* ================================================================== */
   /* Drawing                                                            */
   /* ================================================================== */
-
-  /** SVG for an item in local coordinates, centered on 0,0 (unrotated). */
-  function shape(o, warn) {
-    const c = cat(o);
-    const w = o.w, h = o.h, x = -w / 2, y = -h / 2;
-    const stroke = warn ? '#d64545' : '#5e5246';
-    const sw = warn ? 0.12 : 0.06;
-    const fill = o.color || c.color || '#ddd';
-    const base = `fill="${fill}" stroke="${stroke}" stroke-width="${sw}"`;
-    switch (c.shape) {
-      case 'round':
-        return `<ellipse cx="0" cy="0" rx="${w / 2}" ry="${h / 2}" ${base}/>`;
-      case 'rug':
-        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="0.3" fill="${fill}" opacity="0.75" stroke="${stroke}" stroke-width="0.04" stroke-dasharray="0.25 0.18"/>
-                <rect x="${x + 0.35}" y="${y + 0.35}" width="${Math.max(0, w - 0.7)}" height="${Math.max(0, h - 0.7)}" rx="0.2" fill="none" stroke="${stroke}" stroke-opacity=".25" stroke-width="0.04"/>`;
-      case 'door':
-        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="transparent"/>
-                <path d="M${x + w} ${y + h} A${w} ${h} 0 0 0 ${x} ${y}" fill="#fffdf9" fill-opacity=".6" stroke="${stroke}" stroke-width="0.04" stroke-dasharray="0.2 0.15"/>
-                <line x1="${x}" y1="${y + h}" x2="${x}" y2="${y}" stroke="${stroke}" stroke-width="0.12"/>
-                <line x1="${x}" y1="${y + h}" x2="${x + w}" y2="${y + h}" stroke="#fffdf9" stroke-width="0.4"/>`;
-      case 'window':
-        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="${stroke}" stroke-width="0.06"/>
-                <line x1="${x}" y1="0" x2="${x + w}" y2="0" stroke="${stroke}" stroke-width="0.04"/>`;
-      case 'lshape': {
-        const d = Math.min(3, w / 2, h / 2);
-        return `<path d="M${x} ${y} H${x + w} V${y + d} H${x + d} V${y + h} H${x} Z" ${base} stroke-linejoin="round"/>
-                <path d="M${x + 0.6} ${y + h - 0.2} V${y + 0.6} H${x + w - 0.2}" fill="none" stroke="${stroke}" stroke-opacity=".3" stroke-width="0.05"/>`;
-      }
-      case 'stairs': {
-        let lines = '';
-        for (let yy = y + 0.85; yy < y + h - 0.1; yy += 0.85) lines += `<line x1="${x}" y1="${yy}" x2="${x + w}" y2="${yy}" stroke="${stroke}" stroke-width="0.04"/>`;
-        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" ${base}/>${lines}
-                <path d="M0 ${y + h - 0.6} V${y + 0.6} m-0.4 0.5 l0.4 -0.5 l0.4 0.5" fill="none" stroke="${stroke}" stroke-width="0.07"/>`;
-      }
-      case 'tub':
-        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="0.25" ${base}/>
-                <rect x="${x + 0.3}" y="${y + 0.3}" width="${w - 0.6}" height="${h - 0.6}" rx="${Math.min(1, (h - 0.6) / 2)}" fill="#dff0f2" stroke="${stroke}" stroke-width="0.04"/>`;
-    }
-    let detail = '';
-    if (['king', 'queen', 'full', 'crib'].includes(o.kind) && h > 3) {
-      const pw = w > 4.5 ? (w - 0.9) / 2 : w - 0.6;
-      detail = `<rect x="${x + 0.3}" y="${y + 0.3}" width="${pw}" height="1.1" rx="0.3" fill="#fff" stroke="${stroke}" stroke-width="0.04"/>
-        ${w > 4.5 ? `<rect x="${x + 0.6 + pw}" y="${y + 0.3}" width="${pw}" height="1.1" rx="0.3" fill="#fff" stroke="${stroke}" stroke-width="0.04"/>` : ''}
-        <line x1="${x}" y1="${y + 1.9}" x2="${x + w}" y2="${y + 1.9}" stroke="${stroke}" stroke-opacity=".35" stroke-width="0.05"/>`;
-    } else if (['sofa', 'loveseat', 'armchair'].includes(o.kind)) {
-      const back = Math.min(0.75, h * 0.28), arm = Math.min(0.6, w * 0.18);
-      detail = `<path d="M${x} ${y + back} H${x + w} M${x + arm} ${y + back} V${y + h} M${x + w - arm} ${y + back} V${y + h}" fill="none" stroke="${stroke}" stroke-opacity=".45" stroke-width="0.05"/>`;
-    } else if (o.kind === 'range') {
-      detail = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => `<circle cx="${(a * w) / 4.5}" cy="${(b * h) / 4.5}" r="${Math.min(w, h) / 6}" fill="none" stroke="#fff" stroke-width="0.05"/>`).join('');
-    } else if (o.kind === 'sink' || o.kind === 'vanity' || o.kind === 'vanity2') {
-      const n = o.kind === 'vanity2' ? 2 : 1;
-      detail = Array.from({ length: n }, (_, i) => `<ellipse cx="${x + (w * (i + 0.5)) / n}" cy="0" rx="${Math.min(0.75, w / n / 3)}" ry="${Math.min(0.55, h / 3)}" fill="#fff" stroke="${stroke}" stroke-width="0.04"/>`).join('');
-    } else if (o.kind === 'toilet') {
-      return `<rect x="${x}" y="${y}" width="${w}" height="${h * 0.32}" rx="0.1" ${base}/><ellipse cx="0" cy="${y + h * 0.64}" rx="${w / 2}" ry="${h * 0.34}" ${base}/>`;
-    }
-    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(0.2, w / 4, h / 4)}" ${base}/>${detail}`;
-  }
 
   /** Items that physically overlap (rugs, doors & windows excluded). */
   function overlaps(p) {
@@ -248,14 +190,6 @@
       }
     }
     return bad;
-  }
-
-  /** True for fills dark enough that labels should be light. */
-  function isDark(hex) {
-    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
-    if (!m) return false;
-    const n = parseInt(m[1], 16);
-    return 0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255) < 120;
   }
 
   /** Room name + size, placed in whichever corner/edge of the room is least covered by furniture. */
@@ -281,8 +215,10 @@
       if (cost < bestCost) [best, bestCost] = [[x, y], cost];
     });
     const [x, y] = best;
-    return `<text x="${r2(x + 0.1)}" y="${r2(y + fs)}" font-size="${r2(fs)}" font-weight="700" fill="#3b3330" paint-order="stroke" stroke="#fffdf9" stroke-width="${r2(fs * 0.22)}" stroke-linejoin="round">${esc(r.name)}</text>
-      <text x="${r2(x + 0.1)}" y="${r2(y + 0.2 + fs * 1.95)}" font-size="${r2(fs * 0.68)}" fill="#6f665d" paint-order="stroke" stroke="#fffdf9" stroke-width="${r2(fs * 0.18)}">${dims}</text>`;
+    const tw = Math.max(r.name.length * fs * 0.82 * 0.68, dims.length * fs * 0.6 * 0.5) + fs * 0.9;
+    return `<rect x="${r2(x - fs * 0.25)}" y="${r2(y - fs * 0.15)}" width="${r2(tw)}" height="${r2(fs * 2.25)}" rx="${r2(fs * 0.3)}" fill="#fff" fill-opacity=".72"/>
+      <text x="${r2(x + fs * 0.2)}" y="${r2(y + fs * 0.85)}" font-size="${r2(fs * 0.78)}" font-weight="600" letter-spacing="${r2(fs * 0.07)}" fill="#2f2c29">${esc(r.name.toUpperCase())}</text>
+      <text x="${r2(x + fs * 0.2)}" y="${r2(y + fs * 1.7)}" font-size="${r2(fs * 0.56)}" fill="#5c554d">${dims}</text>`;
   }
 
   function markup(p, { exporting = false } = {}) {
@@ -291,40 +227,30 @@
     let out = '';
     if (!exporting) {
       out += `<defs>
-        <pattern id="g1" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="#ece5da" stroke-width="0.03"/></pattern>
-        <pattern id="g5" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="url(#g1)"/><path d="M5 0H0V5" fill="none" stroke="#dcd2c4" stroke-width="0.06"/></pattern>
+        <pattern id="g1" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="#e3e0da" stroke-width="0.025"/></pattern>
+        <pattern id="g5" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#efede9"/><rect width="5" height="5" fill="url(#g1)"/><path d="M5 0H0V5" fill="none" stroke="#d9d5ce" stroke-width="0.05"/></pattern>
       </defs>
       <rect x="-1000" y="-1000" width="2000" height="2000" fill="url(#g5)"/>`;
     }
+    // floors (texture anchored to the room so it moves with it), soft shadow along the walls, then walls on top
     out += p.rooms
-      .map((r) => `<g data-id="${r.id}" class="el room ${r.id === ui.dropId ? 'pop' : ''}">
-        <rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${r.color}" ${r.outdoor ? 'fill-opacity=".8"' : ''}
-          stroke="${r.outdoor ? '#7c8b5a' : '#3b3330'}" stroke-width="${r.outdoor ? 0.15 : 0.35}" ${r.outdoor ? 'stroke-dasharray="0.6 0.4"' : ''} stroke-linejoin="miter"/>
+      .map((r) => `<g data-id="${r.id}" class="el room ${r.id === ui.dropId ? 'pop' : ''}" transform="translate(${r.x} ${r.y})">
+        <rect width="${r.w}" height="${r.h}" fill="${GG.textures.use(r.floor || D.floorFor(r.name, r.outdoor))}"/>
+        ${r.outdoor ? '' : `<rect x="0.2" y="0.2" width="${Math.max(0, r.w - 0.4)}" height="${Math.max(0, r.h - 0.4)}" fill="none" stroke="#1c140c" stroke-opacity=".10" stroke-width="0.7"/><rect x="0.1" y="0.1" width="${Math.max(0, r.w - 0.2)}" height="${Math.max(0, r.h - 0.2)}" fill="none" stroke="#1c140c" stroke-opacity=".10" stroke-width="0.35"/>`}
       </g>`)
       .join('');
+    out += `<g pointer-events="none">${p.rooms
+      .map((r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="none" ${r.outdoor ? 'stroke="#7d8270" stroke-opacity=".6" stroke-width="0.08"' : 'stroke="#2f2c29" stroke-width="0.45" stroke-linejoin="miter"'}/>`)
+      .join('')}</g>`;
     out += items
       .map((o) => {
         const f = foot(o);
         const cx = o.x + f.w / 2, cy = o.y + f.h / 2;
-        return `<g data-id="${o.id}" class="el item" transform="translate(${r2(cx)} ${r2(cy)}) rotate(${o.rot || 0})"><g class="${o.id === ui.dropId ? 'pop' : ''}">${shape(o, bad.has(o.id))}</g></g>`;
+        const shadow = GG.render.shadowFor(o);
+        return `<g data-id="${o.id}" class="el item" ${shadow ? `filter="${shadow}"` : ''}><g transform="translate(${r2(cx)} ${r2(cy)}) rotate(${o.rot || 0})"><g class="${o.id === ui.dropId ? 'pop' : ''}"><title>${esc(o.name)}</title>${GG.render.item(o, bad.has(o.id))}</g></g></g>`;
       })
       .join('');
     out += `<g pointer-events="none" font-family="ui-sans-serif, system-ui, Helvetica, Arial, sans-serif">`;
-    out += items
-      .map((o) => {
-        const c = cat(o);
-        if (['door', 'window'].includes(c.shape)) return '';
-        const f = foot(o);
-        const fs = Math.min(0.55, (f.w * 1.7) / Math.max(o.name.length, 3), f.h * 0.42);
-        if (fs < 0.22) return '';
-        const ink = isDark(o.color || c.color) ? '#fffdf9' : '#3b3330';
-        // rugs sit under other furniture: label them along their bottom edge, and skip it if that's covered too
-        const ty = c.shape === 'rug' && f.h > 2 ? o.y + f.h - 0.5 : o.y + f.h / 2 + fs * 0.35;
-        const lx = o.x + f.w / 2;
-        if (c.shape === 'rug' && items.some((q) => q !== o && (cat(q).layer ?? 1) === 1 && lx > q.x && lx < q.x + foot(q).w && ty > q.y - 0.3 && ty < q.y + foot(q).h + 0.3)) return '';
-        return `<text x="${r2(o.x + f.w / 2)}" y="${r2(ty)}" font-size="${r2(fs)}" text-anchor="middle" fill="${ink}" fill-opacity=".9">${esc(o.name)}</text>`;
-      })
-      .join('');
     out += p.rooms.map((r) => roomLabel(r, p.items)).join('');
     out += `</g>`;
     if (exporting) return out;
@@ -337,7 +263,7 @@
       const pad = 0.15;
       out += `<rect x="${sel.x - pad}" y="${sel.y - pad}" width="${f.w + 2 * pad}" height="${f.h + 2 * pad}" fill="none" stroke="#d9825b" stroke-width="${upp * 2}" stroke-dasharray="${upp * 6} ${upp * 4}" pointer-events="none"/>
         <circle data-handle="1" cx="${sel.x + f.w}" cy="${sel.y + f.h}" r="${upp * 9}" fill="#d9825b" stroke="#fff" stroke-width="${upp * 2.5}" style="cursor:nwse-resize"/>
-        <text x="${sel.x + f.w / 2}" y="${sel.y - pad - upp * 8}" font-size="${upp * 13}" text-anchor="middle" fill="#d9825b" font-weight="700" pointer-events="none" font-family="ui-sans-serif, system-ui, sans-serif" paint-order="stroke" stroke="#fffdf9" stroke-width="${upp * 3}">${len(f.w)} × ${len(f.h)}</text>`;
+        <text x="${sel.x + f.w / 2}" y="${sel.y - pad - upp * 8}" font-size="${upp * 13}" text-anchor="middle" fill="#d9825b" font-weight="700" pointer-events="none" font-family="ui-sans-serif, system-ui, sans-serif" paint-order="stroke" stroke="#fffdf9" stroke-width="${upp * 3}">${esc(sel.name)} · ${len(f.w)} × ${len(f.h)}</text>`;
     }
     return out;
   }
@@ -452,7 +378,7 @@
     const t = D.roomTypes[i];
     const [w, h] = ROOM_SIZES[t.name] || [12, 12];
     const count = plan().rooms.filter((r) => r.name.startsWith(t.name)).length;
-    return { id: uid('r'), name: count ? `${t.name} ${count + 1}` : t.name, w, h, color: t.color, outdoor: !!t.outdoor };
+    return { id: uid('r'), name: count ? `${t.name} ${count + 1}` : t.name, w, h, color: t.color, floor: t.floor, outdoor: !!t.outdoor };
   }
 
   /** Something new landed on the plan: select it, celebrate, record it. */
@@ -674,12 +600,17 @@
 
     root.onclick = (e) => {
       if (ui.swallowClick) return;
-      const t = e.target.closest('[data-act],[data-add],[data-room],[data-cat],[data-unit],[data-color]');
+      const t = e.target.closest('[data-act],[data-add],[data-room],[data-cat],[data-unit],[data-color],[data-floor]');
       if (!t) return;
       const d = t.dataset;
       const o = find(ui.sel);
       if (d.add) return dropAtCenter(makeItem(d.add));
       if (d.room) return dropAtCenter(makeRoom(Number(d.room)));
+      if (d.floor && o) {
+        o.floor = d.floor;
+        commit();
+        return refresh();
+      }
       if (d.color && o) {
         o.color = d.color;
         commit();
@@ -806,7 +737,8 @@
     const f = foot(o);
     const u = S().unit;
     const step = u === 'm' ? 0.05 : 0.25;
-    const colors = isRoom(o) ? ROOM_COLORS : ITEM_COLORS;
+    const colors = isRoom(o) ? [] : D.swatches[cat(o).mat] || D.swatches.other;
+    const floor = isRoom(o) ? o.floor || D.floorFor(o.name, o.outdoor) : null;
     el.innerHTML = `
       <div class="insp-head">
         <input type="text" data-prop="name" value="${esc(o.name)}" maxlength="40" aria-label="Name">
@@ -816,10 +748,13 @@
         <label class="lbl">Width (${u}) <input type="number" min="0.5" step="${step}" data-prop="fw" value="${toUnit(f.w)}"></label>
         <label class="lbl">${isRoom(o) ? 'Length' : 'Depth'} (${u}) <input type="number" min="0.5" step="${step}" data-prop="fh" value="${toUnit(f.h)}"></label>
       </div>
+      ${isRoom(o)
+        ? `<div class="lbl">Floor</div><div class="floor-row">${GG.textures.floors.map((fl) => `<button class="floor-sw ${fl === floor ? 'on' : ''}" data-floor="${fl}" title="${GG.textures.label(fl)}"><svg viewBox="0 0 2 2"><rect width="2" height="2" fill="${GG.textures.use(fl)}"/></svg><span>${GG.textures.label(fl)}</span></button>`).join('')}</div>`
+        : `<div class="lbl">${cat(o).mat === 'wood' ? 'Finish' : cat(o).mat === 'rug' ? 'Rug color' : cat(o).mat === 'fabric' ? 'Fabric' : 'Color'}</div>
       <div class="swatch-row">
         ${colors.map((c) => `<button class="sw ${c === o.color ? 'on' : ''}" style="background:${c}" data-color="${c}" aria-label="Color ${c}"></button>`).join('')}
         <label class="sw custom" title="Any color"><input type="color" data-prop="color" value="${o.color || '#dddddd'}">🎨</label>
-      </div>
+      </div>`}
       ${isRoom(o) ? `<label class="switch"><input type="checkbox" data-prop="outdoor" ${o.outdoor ? 'checked' : ''}> Outdoor space</label>` : ''}
       <div class="insp-actions">
         ${isRoom(o) ? '' : '<button class="btn sm" data-act="rotate" title="Rotate (R)">⟳ Rotate</button>'}
@@ -971,7 +906,8 @@
     let indoor = 0;
     p.rooms.forEach((r) => !r.outdoor && (indoor += r.w * r.h));
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x} ${b.y} ${b.w} ${b.h + footer}" width="${Math.round(b.w * px)}" height="${Math.round((b.h + footer) * px)}">
-      <rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h + footer}" fill="#fffdf9"/>
+      ${GG.textures.exportDefs()}
+      <rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h + footer}" fill="#fafaf8"/>
       ${markup(p, { exporting: true })}
       <g font-family="ui-sans-serif, system-ui, Helvetica, Arial, sans-serif" fill="#3b3330">
         <text x="${b.x + 1}" y="${b.y + b.h + 1.6}" font-size="0.9" font-weight="700">${esc(p.name)}</text>

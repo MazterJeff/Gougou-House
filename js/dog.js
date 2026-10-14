@@ -57,7 +57,7 @@
   };
 
   const dog = {
-    x: 0, y: 0, face: 1, mode: 'idle', path: [], wait: 1, speed: WALK, bubble: null, hearts: 0,
+    x: 0, y: 0, angle: 0, mode: 'idle', path: [], wait: 1, speed: WALK, bubble: null, hearts: 0,
     placed: false, grid: null, dirty: true, el: null, raf: 0, last: 0,
   };
   let env = null; // { svg, plan(), upp(), enabled() }
@@ -264,51 +264,69 @@
   /* ------------------------------------------------------------------ */
   /* Rendering                                                           */
   /* ------------------------------------------------------------------ */
-  const HEAD = (sleepy) => `
-    <path d="M-30 -14 L-24 -40 L-8 -24 Z" fill="#e8a868" stroke="#2f2a26" stroke-width="4" stroke-linejoin="round"/>
-    <path d="M30 -14 L24 -40 L8 -24 Z" fill="#e8a868" stroke="#2f2a26" stroke-width="4" stroke-linejoin="round"/>
-    <ellipse cx="0" cy="0" rx="32" ry="27" fill="#e8a868" stroke="#2f2a26" stroke-width="4"/>
-    <ellipse cx="0" cy="9" rx="19" ry="14" fill="#fff4e6"/>
-    ${sleepy
-      ? '<path d="M-17 -5 q5 4 10 0 M7 -5 q5 4 10 0" stroke="#2f2a26" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
-      : '<circle cx="-12" cy="-5" r="4.5" fill="#2f2a26"/><circle cx="12" cy="-5" r="4.5" fill="#2f2a26"/><circle cx="-10.5" cy="-6.5" r="1.5" fill="#fff"/><circle cx="13.5" cy="-6.5" r="1.5" fill="#fff"/>'}
-    <ellipse cx="0" cy="4" rx="5" ry="3.6" fill="#2f2a26"/>
-    <path d="M-6 11 q6 6 12 0" stroke="#2f2a26" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <circle cx="-22" cy="7" r="4.5" fill="#f2a5a0" opacity=".8"/><circle cx="22" cy="7" r="4.5" fill="#f2a5a0" opacity=".8"/>`;
+  /** Realistic top-down shiba, facing +x, sized ~2.3 ft nose to tail. */
+  const FUR = 'url(#g-dogfur)';
+  function awakeSprite() {
+    const paw = (cls, x, y) => `<ellipse class="leg ${cls}" cx="${x}" cy="${y}" rx="0.13" ry="0.085" fill="#efdcc0" stroke="#a8692f" stroke-opacity=".4" stroke-width="0.015"/>`;
+    return `
+      <ellipse cx="0.05" cy="0.1" rx="1.15" ry="0.5" fill="#1c140c" opacity=".25" filter="url(#f-blur)"/>
+      ${paw('a', 0.62, -0.3)}${paw('b', 0.62, 0.3)}${paw('b', -0.6, -0.32)}${paw('a', -0.6, 0.32)}
+      <g class="dog-body">
+        <ellipse cx="-0.1" cy="0" rx="0.8" ry="0.39" fill="${FUR}"/>
+        <ellipse cx="-0.15" cy="0" rx="0.62" ry="0.13" fill="#9e5626" opacity=".35"/>
+        <ellipse cx="-0.1" cy="0" rx="0.8" ry="0.39" fill="${GG.textures.use('o-fabric')}" opacity=".6"/>
+        <g class="dog-tail">
+          <circle cx="-0.72" cy="-0.02" r="0.27" fill="${FUR}"/>
+          <path d="M-0.72 -0.02 m-0.17 0 a0.17 0.17 0 1 1 0.17 0.17 a0.09 0.09 0 1 1 -0.06 -0.12" fill="none" stroke="#f3e2c6" stroke-width="0.07" stroke-linecap="round"/>
+        </g>
+        <path d="M0.6 -0.14 L0.47 -0.38 L0.74 -0.26 Z" fill="#b8692f"/><path d="M0.6 -0.17 L0.52 -0.32 L0.69 -0.25 Z" fill="#f0c9a2"/>
+        <path d="M0.6 0.14 L0.47 0.38 L0.74 0.26 Z" fill="#b8692f"/><path d="M0.6 0.17 L0.52 0.32 L0.69 0.25 Z" fill="#f0c9a2"/>
+        <ellipse cx="0.74" cy="0" rx="0.31" ry="0.29" fill="${FUR}"/>
+        <ellipse cx="0.98" cy="0" rx="0.18" ry="0.15" fill="#f2e2c8"/>
+        <ellipse cx="1.12" cy="0" rx="0.055" ry="0.05" fill="#1f1a17"/>
+        <circle cx="0.86" cy="-0.115" r="0.032" fill="#1f1a17"/><circle cx="0.86" cy="0.115" r="0.032" fill="#1f1a17"/>
+      </g>`;
+  }
+  function sleepSprite() {
+    return `
+      <ellipse cx="0.05" cy="0.08" rx="0.75" ry="0.66" fill="#1c140c" opacity=".25" filter="url(#f-blur)"/>
+      <g class="dog-body">
+        <ellipse cx="0" cy="0" rx="0.62" ry="0.55" fill="${FUR}"/>
+        <ellipse cx="0" cy="0" rx="0.62" ry="0.55" fill="${GG.textures.use('o-fabric')}" opacity=".6"/>
+        <path d="M-0.45 0.35 Q0 0.75 0.45 0.32" fill="none" stroke="${FUR}" stroke-width="0.24" stroke-linecap="round"/>
+        <path d="M-0.4 0.38 Q0 0.68 0.4 0.36" fill="none" stroke="#f3e2c6" stroke-width="0.06" stroke-linecap="round"/>
+        <g transform="translate(0.28 0.08) rotate(70)">
+          <path d="M-0.1 -0.15 L-0.25 -0.36 L0.02 -0.27 Z" fill="#b8692f"/><path d="M-0.1 0.15 L-0.25 0.36 L0.02 0.27 Z" fill="#b8692f"/>
+          <ellipse cx="0" cy="0" rx="0.27" ry="0.26" fill="${FUR}"/>
+          <ellipse cx="0.2" cy="0" rx="0.15" ry="0.13" fill="#f2e2c8"/>
+          <ellipse cx="0.33" cy="0" rx="0.045" ry="0.04" fill="#1f1a17"/>
+          <path d="M0.1 -0.13 q0.04 0.03 0.08 0 M0.1 0.13 q0.04 -0.03 0.08 0" fill="none" stroke="#1f1a17" stroke-width="0.02" stroke-linecap="round"/>
+        </g>
+      </g>`;
+  }
 
   function inner() {
     const sleeping = dog.mode === 'sleep';
     const upp = env.upp();
     let bubble = '';
     if (dog.bubble && performance.now() < dog.bubble.until) {
-      const fs = Math.max(0.45, 13 * upp);
-      const w = Math.max(2.5, [...dog.bubble.text].length * fs * 0.55 + fs * 1.4);
+      const fs = Math.max(0.42, 12.5 * upp);
+      const w = Math.max(2.5, [...dog.bubble.text].length * fs * 0.54 + fs * 1.6);
       const h = fs * 2;
-      const by = -2.6 - h;
-      bubble = `<g class="dog-bubble" pointer-events="none">
-        <rect x="${-w / 2}" y="${by}" width="${w}" height="${h}" rx="${h / 2}" fill="#fffdf9" stroke="#2f2a26" stroke-width="${fs * 0.1}"/>
-        <path d="M${-fs * 0.4} ${by + h - 0.02} L0 ${by + h + fs * 0.6} L${fs * 0.4} ${by + h - 0.02}" fill="#fffdf9" stroke="#2f2a26" stroke-width="${fs * 0.1}" stroke-linejoin="round"/>
-        <rect x="${-fs * 0.42}" y="${by + h - fs * 0.15}" width="${fs * 0.84}" height="${fs * 0.2}" fill="#fffdf9"/>
-        <text x="0" y="${by + h / 2 + fs * 0.36}" font-size="${fs}" text-anchor="middle" fill="#2f2a26" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif">${esc(dog.bubble.text)}</text>
+      const by = -1.3 - h;
+      bubble = `<g class="dog-bubble" pointer-events="none" filter="url(#f-shadow-low)">
+        <rect x="${-w / 2}" y="${by}" width="${w}" height="${h}" rx="${h / 2}" fill="#ffffff" fill-opacity=".96"/>
+        <path d="M${-fs * 0.35} ${by + h - 0.01} L0 ${by + h + fs * 0.5} L${fs * 0.35} ${by + h - 0.01} Z" fill="#ffffff" fill-opacity=".96"/>
+        <text x="0" y="${by + h / 2 + fs * 0.35}" font-size="${fs}" text-anchor="middle" fill="#2f2c29" font-weight="600" font-family="ui-sans-serif, system-ui, sans-serif">${esc(dog.bubble.text)}</text>
       </g>`;
     }
     const hearts = dog.hearts > performance.now()
-      ? `<g class="dog-hearts" pointer-events="none" font-size="0.75"><text x="-2" y="-1.2">❤️</text><text x="1.3" y="-1.6">💕</text><text x="1.6" y="-0.6">❤️</text></g>`
+      ? `<g class="dog-hearts" pointer-events="none" font-size="0.6"><text x="-1.3" y="-0.6">❤️</text><text x="0.8" y="-0.9">💕</text><text x="1" y="0.1">❤️</text></g>`
       : '';
-    const zzz = sleeping ? `<g class="dog-zzz" pointer-events="none" font-family="Georgia, serif" font-weight="700" fill="#5d8ca3"><text x="0.9" y="-1.9" font-size="0.6">z</text><text x="1.3" y="-2.5" font-size="0.75">z</text><text x="1.8" y="-3.2" font-size="0.9">Z</text></g>` : '';
+    const zzz = sleeping ? `<g class="dog-zzz" pointer-events="none" font-family="Georgia, serif" font-style="italic" fill="#ffffff" stroke="#2f2c29" stroke-opacity=".35" stroke-width="0.02"><text x="0.55" y="-0.6" font-size="0.4">z</text><text x="0.85" y="-0.95" font-size="0.5">z</text><text x="1.2" y="-1.35" font-size="0.62">z</text></g>` : '';
     return `
-      <g class="dog-sprite ${dog.mode}" transform="scale(${dog.face} 1)">
-        <ellipse cx="0" cy="0.05" rx="1" ry="0.25" fill="#2f2a26" opacity=".14"/>
-        <g class="dog-body">
-          <path class="dog-tail" d="M-0.85 -0.75 q-0.55 -0.15 -0.45 -0.75 q0.25 0.35 0.45 0.4" fill="#e8a868" stroke="#2f2a26" stroke-width="0.07" stroke-linejoin="round"/>
-          ${sleeping ? '' : `<rect class="leg a" x="-0.7" y="-0.35" width="0.22" height="0.38" rx="0.08" fill="#e8a868" stroke="#2f2a26" stroke-width="0.06"/>
-          <rect class="leg b" x="-0.35" y="-0.35" width="0.22" height="0.38" rx="0.08" fill="#e8a868" stroke="#2f2a26" stroke-width="0.06"/>
-          <rect class="leg b" x="0.15" y="-0.35" width="0.22" height="0.38" rx="0.08" fill="#e8a868" stroke="#2f2a26" stroke-width="0.06"/>
-          <rect class="leg a" x="0.5" y="-0.35" width="0.22" height="0.38" rx="0.08" fill="#e8a868" stroke="#2f2a26" stroke-width="0.06"/>`}
-          <ellipse cx="-0.05" cy="${sleeping ? -0.35 : -0.6}" rx="0.95" ry="${sleeping ? 0.38 : 0.45}" fill="#e8a868" stroke="#2f2a26" stroke-width="0.07"/>
-          <ellipse cx="0.15" cy="${sleeping ? -0.3 : -0.5}" rx="0.45" ry="0.22" fill="#fff4e6"/>
-          <g class="dog-head" transform="translate(${sleeping ? 0.75 : 0.6} ${sleeping ? -0.75 : -1.35}) scale(0.03)">${HEAD(sleeping)}</g>
-        </g>
+      <g class="dog-rot" transform="rotate(${((dog.angle * 180) / Math.PI).toFixed(1)})">
+        <g class="dog-sprite ${dog.mode}">${sleeping ? sleepSprite() : awakeSprite()}</g>
       </g>
       ${zzz}${hearts}${bubble}`;
   }
@@ -371,13 +389,7 @@
         const n = dog.path[0];
         const dx = n.x - dog.x, dy = n.y - dog.y;
         const d = Math.hypot(dx, dy);
-        if (Math.abs(dx) > 0.05) {
-          const face = dx > 0 ? 1 : -1;
-          if (face !== dog.face) {
-            dog.face = face;
-            paint();
-          }
-        }
+        if (d > 0.01) dog.heading = Math.atan2(dy, dx);
         if (d <= step) {
           dog.x = n.x;
           dog.y = n.y;
@@ -403,8 +415,18 @@
       dog.hearts = 0;
       paint();
     }
+    // turn smoothly toward the direction of travel
+    if (dog.heading !== undefined && dog.mode !== 'sleep') {
+      let diff = dog.heading - dog.angle;
+      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+      dog.angle += diff * Math.min(1, dt * 9);
+    }
     if (!dog.el || !dog.el.isConnected) dog.el = env.svg().querySelector('#gg-dog');
-    if (dog.el) dog.el.setAttribute('transform', `translate(${dog.x.toFixed(2)} ${dog.y.toFixed(2)})`);
+    if (dog.el) {
+      dog.el.setAttribute('transform', `translate(${dog.x.toFixed(2)} ${dog.y.toFixed(2)})`);
+      const rot = dog.el.querySelector('.dog-rot');
+      if (rot) rot.setAttribute('transform', `rotate(${((dog.angle * 180) / Math.PI).toFixed(1)})`);
+    }
   }
 
   GG.dog = {

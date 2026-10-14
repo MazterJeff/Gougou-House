@@ -108,6 +108,7 @@
   }
 
   GG.app = { settings, sharePlan };
+  GG.textures.init();
   GG.game.render(view);
   if (GG.store.fresh) setTimeout(() => GG.dog.say('Help me furnish our home! Drag things from the shelf 🛋️', 6000), 1500);
   checkHash();
