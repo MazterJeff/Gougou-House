@@ -2,49 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#fbf7f2" />
-    <meta name="description" content="Gougou House — design your future home together: shared style quiz, wishlist, floor plans, mood board and budget." />
+    <meta name="description" content="Gougou House — a cozy game for decorating your future home, one sofa at a time." />
     <title>Gougou House</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>" />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="#home" aria-label="Gougou House home">
-        <span id="brand-mascot"></span>
-        <span class="brand-name">Gougou<span> House</span></span>
-      </a>
-      <nav class="tabs" id="tabs" aria-label="Sections">
-        <a href="#home">🏠 <span>Home</span></a>
-        <a href="#quiz">🎲 <span>This or That</span></a>
-        <a href="#wishlist">📋 <span>Wishlist</span></a>
-        <a href="#planner">📐 <span>Floor Plans</span></a>
-        <a href="#mood">🎨 <span>Mood Board</span></a>
-        <a href="#budget">💰 <span>Budget</span></a>
-      </nav>
-      <div class="whoami" id="whoami"></div>
-    </header>
-
     <main id="view"></main>
-
-    <footer class="footer muted small">Made with 🐶 &amp; 💕 · Your data stays in this browser.</footer>
-
     <div id="modal-root"></div>
     <div id="toast" role="status" aria-live="polite"></div>
-
     <noscript><p style="padding:2rem">Gougou House needs JavaScript turned on. 🐶</p></noscript>
 
     <script src="js/util.js"></script>
     <script src="js/data.js"></script>
     <script src="js/store.js"></script>
-    <script src="js/insights.js"></script>
-    <script src="js/views/home.js"></script>
-    <script src="js/views/quiz.js"></script>
-    <script src="js/views/wishlist.js"></script>
-    <script src="js/views/planner.js"></script>
-    <script src="js/views/mood.js"></script>
-    <script src="js/views/budget.js"></script>
+    <script src="js/dog.js"></script>
+    <script src="js/game.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

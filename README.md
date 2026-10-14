@@ -1,64 +1,64 @@
 # 🏡 Gougou House
 
-**Design your future home, together.** A cozy little web app for two people planning a home: find your shared style, decide what really matters, sketch floor plans with real furniture sizes, and make the money add up. Gougou the pup 🐶 helps along the way.
+**A cozy little game for decorating your future home together.** Pick a space, drag in sofas, beds, rugs and plants at their real sizes, and watch **Gougou the pup 🐶** explore every room you make.
 
-No accounts and no server. Everything stays in your browser.
+No installs and no accounts. Open it and play.
 
-## How to use it (the short version)
+## How to play
 
-1. **Open it.** Double-click `index.html`, or host it (see below) so you can both open it on your phones.
-2. **Say who you are.** Gougou asks for both names on first launch.
-3. **Each of you plays _This or That_ separately.** 18 quick picks. When you've both finished, you get your **home's style blend** (e.g. *Nordic Zen*, *Desert Modern*), a taste-match score, and a list of exactly where you differ.
-4. **Each of you rates the _Wishlist_.** ❤️ must / 👍 nice / 🤷 don't care / 🙅 rather not, for ~50 features (add your own too). You only see your partner's answer after you've given yours. Gougou sorts out your **shared must-haves**, your **big talks** (one must-have vs. one "rather not") and your **easy skips**.
-5. **Talk.** The home page deals out **conversation cards** ("Where does the dog sleep? Be honest.").
-6. **Mood Board.** Heart palettes (💞 when you both do), pin photos (drag and drop or paste), image links, notes and colors, and tag them by room.
-7. **Floor Plans.** Start from a template (1-bed, 2-bed, little house with a yard) or a blank canvas. Drag rooms and real-size furniture around, resize, rotate, and get warnings when pieces overlap. A **Wishlist check** confirms the plan has the things you both said you want. Make several options and each heart your favorite. Export as PNG or SVG.
-8. **Budget.** Monthly cost for buying (mortgage, tax, insurance, HOA) or renting, how affordable it is against your take-home pay, a **50/50 vs. income-based split**, and a move-in shopping list you can fill straight from your floor plan with ballpark prices.
+1. **Open `index.html`** in your browser (or host it, see below).
+2. You start in an **empty 1-bedroom**. Pick a category on the shelf (🛋️ Living, 🛏️ Bedroom, 🍳 Kitchen, 🐶 Pets…) and **drag** a piece onto the plan. You can also tap it to drop it in the middle.
+3. **Arrange things:**
+   - **Move:** drag a piece. Rooms carry their furniture with them; hold <kbd>Alt</kbd> to move a room on its own.
+   - **Resize:** drag the orange dot.
+   - **Rotate:** <kbd>R</kbd>.
+   - **Recolor:** pick a swatch in the little panel that pops up.
+   - **Delete / copy:** <kbd>Del</kbd> deletes, <kbd>Ctrl/⌘ D</kbd> makes a copy.
+   - **Undo / redo:** <kbd>Ctrl/⌘ Z</kbd> undoes, <kbd>Ctrl/⌘ Shift Z</kbd> redoes.
+   - **Zoom and pan:** scroll to zoom, drag empty space to pan.
+4. **Build rooms** from the 🚪 **Rooms** shelf, or press **＋** for a new space:
+   - studio loft
+   - cozy 1-bedroom
+   - 2-bedroom apartment
+   - little house with a yard
+   - blank canvas
 
-Use **"Who's here?"** in the top-right to switch between the two of you on a shared device.
+   Each comes **empty** (you furnish it) or **already furnished**.
+5. Pieces that overlap get a red outline, and the counter in the top-left shows them as "bumping".
+6. **📸 Picture** saves a PNG of your design.
 
-## Using it on two phones
+### Meet Gougou
 
-Open ⚙️ **Settings → Share with your partner**:
+Gougou wanders from room to room, walks *around* your furniture (never through it), naps on the dog bed if you give one, and has opinions about what you add ("Is that… for ME?! 🥹"). Click Gougou for a pat. The **🐶 Gougou** button hides or shows the pup.
 
-- **Copy share link**: sends your copy as a link. Your partner opens it and picks **Merge**, which brings in *your* quiz and wishlist answers plus any new plans, pins and budget items, and leaves theirs alone. (Uploaded photos are left out of links to keep them short.)
-- **Download backup file**: everything, photos included. Open it on the other device with **Open a backup / partner file**.
+## Playing on two devices
 
-Share links only work when the app is hosted at a URL you both can open. Backup files always work.
+- **⋯ → Copy a link to send** shares one design. Whoever opens the link can add it to their own designs.
+- **⚙️ → Download backup** saves every design to a file, which you can open on another device.
 
-## Hosting it for free on GitHub Pages
+Links work best when the game is online (below).
 
-1. Push this repo to GitHub.
-2. Go to **Settings → Pages**, set *Source* to "Deploy from a branch", pick your branch and `/ (root)`, then save.
-3. After a minute it's live at `https://<your-username>.github.io/<repo-name>/`. Bookmark it on both phones (or use "Add to Home Screen").
+## Put it online for free (GitHub Pages)
 
-To run it locally with a server (needed for share links to point anywhere useful):
+1. On GitHub, open the repo's **Settings → Pages**.
+2. Set *Source* to "Deploy from a branch", pick your branch and `/ (root)`, then save.
+3. After a minute it's live at `https://<your-username>.github.io/<repo-name>/`. Add it to both phones' home screens.
 
-```sh
-python3 -m http.server 8000
-# then open http://localhost:8000
-```
+To run it locally: `python3 -m http.server 8000`, then open http://localhost:8000.
 
 ## Project layout
 
 Plain HTML/CSS/JS with no build step and no dependencies.
 
 ```
-index.html            app shell + nav
-css/styles.css        all styling (responsive)
-js/util.js            helpers: escaping, units, modal, toast, share-link encoding, mascot
-js/data.js            content: styles, quiz, wishlist, furniture sizes, templates, palettes, conversation cards
-js/store.js           state + localStorage persistence + merge logic
-js/insights.js        derived results: style scores, agreement, blends, wishlist buckets
-js/app.js             router, "who's here?", welcome, settings, sharing
-js/views/*.js         one file per page (home, quiz, wishlist, planner, mood, budget)
-docs/viewing-checklist.md   a printable checklist for apartment / house viewings
+index.html       page shell
+css/styles.css   all styling (desktop + phone)
+js/util.js       helpers: units, modal, toast, share links, mascot
+js/data.js       furniture catalog (real sizes, in inches), room types, starter spaces
+js/store.js      saved designs (localStorage)
+js/dog.js        Gougou: pathfinding, wandering, napping, chatting
+js/game.js       the editor: shelf, drag & drop, undo, inspector, export
+js/app.js        boot, settings, backups, share links
 ```
 
-### Making it yours
-
-Most of the fun is in `js/data.js`. Add quiz questions, wishlist items, furniture with real dimensions (in inches), new starter floor plans, palettes or conversation cards, and the app picks them up automatically.
-
-## Privacy
-
-Data lives in your browser's `localStorage` on each device. Nothing is sent anywhere. Clearing site data erases it, so download a backup now and then.
+Want more furniture or another starter space? Add it to `js/data.js` and the game picks it up automatically. Gougou's lines live at the top of `js/dog.js`.

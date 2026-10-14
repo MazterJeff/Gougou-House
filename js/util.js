@@ -13,13 +13,6 @@ window.GG = window.GG || {};
 
   U.clone = (o) => JSON.parse(JSON.stringify(o));
 
-  U.money = (n) => {
-    const v = Math.round(Number(n) || 0);
-    return (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US');
-  };
-
-  U.pct = (n) => `${Math.round((Number(n) || 0) * 100)}%`;
-
   U.debounce = (fn, ms) => {
     let t;
     return (...args) => {
@@ -28,7 +21,7 @@ window.GG = window.GG || {};
     };
   };
 
-  /* ---------- lengths: plans are stored in feet, displayed in ft or m ---------- */
+  /* ---------- lengths: designs are stored in feet, displayed in ft or m ---------- */
   const FT_PER_M = 3.28084;
   U.unit = () => (GG.store && GG.store.state.unit) || 'ft';
 
@@ -137,27 +130,6 @@ window.GG = window.GG || {};
       input.accept = accept;
       input.onchange = () => resolve(input.files[0] || null);
       input.click();
-    });
-
-  /** Downscale an image file to a JPEG data URL so it fits comfortably in localStorage. */
-  U.readImage = (file, maxSize = 900) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = reject;
-      reader.onload = () => {
-        const img = new Image();
-        img.onerror = reject;
-        img.onload = () => {
-          const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-          const c = document.createElement('canvas');
-          c.width = Math.round(img.width * scale);
-          c.height = Math.round(img.height * scale);
-          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-          resolve(c.toDataURL('image/jpeg', 0.8));
-        };
-        img.src = reader.result;
-      };
-      reader.readAsDataURL(file);
     });
 
   /* ---------- share links: JSON -> deflate -> base64url ---------- */

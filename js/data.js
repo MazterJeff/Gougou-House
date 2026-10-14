@@ -1,346 +1,6 @@
-/* Gougou House — static content: styles, quiz, wishlist catalog, furniture, plan templates, palettes. */
+/* Gougou House — static content: furniture catalog (real sizes), room types and starter spaces. */
 (function (GG) {
   const D = (GG.data = {});
-
-  /* ------------------------------------------------------------------ */
-  /* Interior style archetypes                                           */
-  /* ------------------------------------------------------------------ */
-  D.styles = {
-    japandi: {
-      name: 'Japandi',
-      emoji: '🍵',
-      blurb: 'Japanese calm meets Scandinavian warmth: low furniture, natural wood, linen, and lots of breathing room.',
-      palette: ['#f2ede4', '#d8c8b0', '#a68a6d', '#5e5246', '#2e2a26'],
-      ideas: ['Low platform bed', 'Paper or linen lamp shades', 'Handmade ceramics', 'Closed storage to hide the clutter'],
-    },
-    scandi: {
-      name: 'Scandinavian',
-      emoji: '🌲',
-      blurb: 'Bright, airy and practical — white walls, pale woods and hygge textiles for long winters.',
-      palette: ['#ffffff', '#eceae4', '#c9b79c', '#8fa3a8', '#3b4a52'],
-      ideas: ['Sheepskin throws', 'Pale oak floors', 'Candles everywhere', 'Sheer white curtains'],
-    },
-    midcentury: {
-      name: 'Mid-Century Modern',
-      emoji: '🪑',
-      blurb: 'Tapered legs, walnut, graphic shapes and a pop of mustard or teal. Retro but timeless.',
-      palette: ['#f4e9d8', '#e0a43a', '#c0583a', '#2f6f73', '#4a3428'],
-      ideas: ['Walnut credenza', 'Globe pendant lights', 'Statement lounge chair', 'Geometric rug'],
-    },
-    industrial: {
-      name: 'Industrial Loft',
-      emoji: '🏭',
-      blurb: 'Exposed brick, concrete, black steel and leather — big windows and city-loft energy.',
-      palette: ['#e6e2dd', '#a39e97', '#7a4b35', '#3c3c3c', '#1d1d1d'],
-      ideas: ['Black-framed glass partitions', 'Cognac leather sofa', 'Exposed bulb pendants', 'Open metal shelving'],
-    },
-    boho: {
-      name: 'Boho',
-      emoji: '🌿',
-      blurb: 'Layered textiles, rattan, plants and travel finds — relaxed, colorful and full of life.',
-      palette: ['#f3e3cf', '#d9a77c', '#b5653f', '#7c8b5a', '#3f4a3a'],
-      ideas: ['Rattan accent chair', 'Layered vintage rugs', 'Hanging plants', 'Floor cushions'],
-    },
-    farmhouse: {
-      name: 'Modern Farmhouse',
-      emoji: '🌾',
-      blurb: 'Big farmhouse table, cozy textures, black-and-white contrast with warm reclaimed wood.',
-      palette: ['#faf8f3', '#e3dccf', '#b49a7a', '#5c6b5d', '#2b2b2b'],
-      ideas: ['Farmhouse sink', 'Long dining table with a bench', 'Open pantry shelves', 'Mudroom with hooks'],
-    },
-    coastal: {
-      name: 'Coastal',
-      emoji: '🌊',
-      blurb: 'Breezy whites, sandy neutrals, washed blues and natural fibers. Vacation every day.',
-      palette: ['#ffffff', '#efe6d6', '#bcd4dc', '#5d8ca3', '#2c4b5e'],
-      ideas: ['Slipcovered sofa', 'Jute rugs', 'Linen bedding', 'Blue-and-white ceramics'],
-    },
-    modern: {
-      name: 'Warm Minimalist',
-      emoji: '◻️',
-      blurb: 'Clean lines, hidden storage and a few perfect pieces. Calm, precise and quietly luxurious.',
-      palette: ['#f7f6f3', '#dcd8d0', '#9c958b', '#4b4741', '#151515'],
-      ideas: ['Handle-less cabinetry', 'Microcement or plaster walls', 'One statement light', 'Built-in everything'],
-    },
-  };
-
-  /** Hand-picked names for style blends (order-independent keys). */
-  D.blendNames = {
-    'japandi+scandi': 'Nordic Zen',
-    'japandi+modern': 'Quiet Luxury',
-    'japandi+midcentury': 'Tokyo Mid-Century',
-    'japandi+boho': 'Wabi-Sabi Boho',
-    'japandi+industrial': 'Zen Loft',
-    'japandi+farmhouse': 'Rustic Zen',
-    'japandi+coastal': 'Driftwood Calm',
-    'scandi+modern': 'Nordic Minimal',
-    'scandi+boho': 'Hygge Boho',
-    'scandi+farmhouse': 'Cabin Hygge',
-    'scandi+coastal': 'Nordic Seaside',
-    'scandi+midcentury': 'Danish Modern',
-    'scandi+industrial': 'Copenhagen Loft',
-    'midcentury+boho': 'Desert Modern',
-    'midcentury+industrial': 'Brooklyn Mid-Century',
-    'midcentury+modern': 'Modern Classic',
-    'midcentury+farmhouse': 'Retro Ranch',
-    'midcentury+coastal': 'Palm Springs',
-    'industrial+modern': 'Urban Minimal',
-    'industrial+farmhouse': 'Warehouse Farmhouse',
-    'industrial+boho': 'Bohemian Loft',
-    'industrial+coastal': 'Harbor Loft',
-    'boho+coastal': 'Beach Boho',
-    'boho+farmhouse': 'Cottagecore',
-    'boho+modern': 'Organic Modern',
-    'farmhouse+coastal': 'Coastal Cottage',
-    'farmhouse+modern': 'Modern Barn',
-    'coastal+modern': 'Mediterranean Minimal',
-  };
-
-  /* ------------------------------------------------------------------ */
-  /* This or That quiz. Each option carries style weights + a topic.     */
-  /* ------------------------------------------------------------------ */
-  D.quiz = [
-    {
-      id: 'sunday',
-      prompt: 'Perfect Sunday morning at home…',
-      topic: 'Morning ritual',
-      options: [
-        { emoji: '☕️', title: 'Coffee in a sunny breakfast nook', sub: 'Garden view, slow pancakes', styles: { farmhouse: 2, scandi: 1, coastal: 1 } },
-        { emoji: '🏙️', title: 'Brunch on a balcony above the city', sub: 'Skyline, people-watching', styles: { industrial: 2, midcentury: 1, modern: 1 } },
-      ],
-    },
-    {
-      id: 'floors',
-      prompt: 'Under your bare feet…',
-      topic: 'Flooring',
-      options: [
-        { emoji: '🪵', title: 'Warm wood floors', sub: 'Oak, walnut, herringbone', styles: { scandi: 2, japandi: 1, midcentury: 1, farmhouse: 1 } },
-        { emoji: '🪨', title: 'Polished concrete or stone', sub: 'Cool, seamless, durable', styles: { industrial: 2, modern: 2 } },
-      ],
-    },
-    {
-      id: 'layout',
-      prompt: 'How should the main living space flow?',
-      topic: 'Open vs. closed layout',
-      options: [
-        { emoji: '🌬️', title: 'Open plan', sub: 'Kitchen, dining & living as one big room', styles: { modern: 1, industrial: 1, scandi: 1 } },
-        { emoji: '🚪', title: 'Cozy distinct rooms', sub: 'Doors, nooks, places to retreat', styles: { farmhouse: 1, boho: 1, japandi: 1 } },
-      ],
-    },
-    {
-      id: 'walls',
-      prompt: 'Pick the walls',
-      topic: 'Wall color',
-      options: [
-        { emoji: '🤍', title: 'Crisp white & airy', sub: 'A bright gallery for life', styles: { scandi: 2, coastal: 1, modern: 1 } },
-        { emoji: '🍷', title: 'Moody & rich', sub: 'Deep green, terracotta, ink blue', styles: { boho: 2, midcentury: 1, industrial: 1 } },
-      ],
-    },
-    {
-      id: 'stuff',
-      prompt: 'Your shelves look like…',
-      topic: 'Minimal vs. collected',
-      options: [
-        { emoji: '🧘', title: 'Less is more', sub: 'Hidden storage, clear surfaces', styles: { modern: 2, japandi: 2 } },
-        { emoji: '📚', title: 'Collected treasures', sub: 'Books, art, souvenirs everywhere', styles: { boho: 2, midcentury: 1, farmhouse: 1 } },
-      ],
-    },
-    {
-      id: 'plants',
-      prompt: 'Plant situation?',
-      topic: 'Plants',
-      options: [
-        { emoji: '🌴', title: 'Urban jungle', sub: 'Monstera in every corner', styles: { boho: 3, midcentury: 1 } },
-        { emoji: '🎍', title: 'A few sculptural plants', sub: 'One olive tree, done', styles: { japandi: 2, modern: 2 } },
-      ],
-    },
-    {
-      id: 'furniture',
-      prompt: 'Which sofa makes you want to sit down?',
-      topic: 'Furniture shapes',
-      options: [
-        { emoji: '🛋️', title: 'Low, deep & natural', sub: 'Linen, boucle, solid wood', styles: { japandi: 2, scandi: 1, coastal: 1 } },
-        { emoji: '🟠', title: 'Iconic & curvy', sub: 'Tapered legs, velvet, bold shapes', styles: { midcentury: 3, boho: 1 } },
-      ],
-    },
-    {
-      id: 'light',
-      prompt: 'Evenings at home are lit by…',
-      topic: 'Lighting mood',
-      options: [
-        { emoji: '🌞', title: 'Huge windows & daylight', sub: 'Sheer curtains, golden hour', styles: { scandi: 1, coastal: 2, modern: 1 } },
-        { emoji: '🕯️', title: 'Warm lamps & candles', sub: 'Dim, cozy pools of light', styles: { japandi: 1, boho: 1, farmhouse: 1, industrial: 1 } },
-      ],
-    },
-    {
-      id: 'kitchen',
-      prompt: 'Where should the square footage go?',
-      topic: 'Kitchen vs. living space',
-      options: [
-        { emoji: '👩‍🍳', title: "A chef's kitchen with an island", sub: 'Cooking is the main event', styles: { farmhouse: 2, modern: 1 } },
-        { emoji: '🛋️', title: 'Compact kitchen, bigger living room', sub: 'More room to lounge', styles: { midcentury: 1, boho: 1, industrial: 1 } },
-      ],
-    },
-    {
-      id: 'bath',
-      prompt: 'Bathroom must-have',
-      topic: 'Tub vs. shower',
-      options: [
-        { emoji: '🛁', title: 'Deep soaking tub', sub: 'Bubble baths & a book', styles: { japandi: 2, farmhouse: 1, coastal: 1 } },
-        { emoji: '🚿', title: 'Walk-in rain shower', sub: 'Glass, tile, spa vibes', styles: { modern: 2, industrial: 1 } },
-      ],
-    },
-    {
-      id: 'where',
-      prompt: 'Where do we live?',
-      topic: 'City vs. quiet',
-      options: [
-        { emoji: '🚇', title: 'Walkable city neighborhood', sub: 'Cafés downstairs, no car needed', styles: { industrial: 2, midcentury: 1, modern: 1 } },
-        { emoji: '🏡', title: 'Quiet place with a yard', sub: 'Trees, grill, room for the dog', styles: { farmhouse: 2, coastal: 1, scandi: 1 } },
-      ],
-    },
-    {
-      id: 'metal',
-      prompt: 'Pick the hardware finish',
-      topic: 'Metal finishes',
-      options: [
-        { emoji: '✨', title: 'Brass & warm gold', sub: 'Soft glow, a bit glam', styles: { midcentury: 2, boho: 1 } },
-        { emoji: '🖤', title: 'Matte black', sub: 'Graphic and crisp', styles: { industrial: 2, farmhouse: 1, modern: 1 } },
-      ],
-    },
-    {
-      id: 'textiles',
-      prompt: 'On the couch there is…',
-      topic: 'Textiles & pattern',
-      options: [
-        { emoji: '🧺', title: 'Linen & cotton in soft neutrals', sub: 'Texture over pattern', styles: { japandi: 1, scandi: 1, coastal: 1, modern: 1 } },
-        { emoji: '🧶', title: 'Pattern, color & macramé', sub: 'Kilim pillows, fringe, rattan', styles: { boho: 3 } },
-      ],
-    },
-    {
-      id: 'bedroom',
-      prompt: 'The bedroom should feel like…',
-      topic: 'Bedroom feel',
-      options: [
-        { emoji: '🏨', title: 'A calm boutique hotel', sub: 'Crisp, uncluttered, serene', styles: { modern: 2, japandi: 1 } },
-        { emoji: '🪺', title: 'A cozy nest', sub: 'Mountains of pillows & throws', styles: { boho: 1, farmhouse: 1, scandi: 1 } },
-      ],
-    },
-    {
-      id: 'getaway',
-      prompt: 'Your house would rather be…',
-      topic: 'Getaway vibe',
-      options: [
-        { emoji: '🏖️', title: 'A beach house', sub: 'Salt air, white linen, blue', styles: { coastal: 3 } },
-        { emoji: '🏔️', title: 'A mountain cabin', sub: 'Fireplace, wool, timber', styles: { farmhouse: 1, scandi: 2, industrial: 1 } },
-      ],
-    },
-    {
-      id: 'weekend',
-      prompt: 'Saturday night we are…',
-      topic: 'Hosting vs. nesting',
-      options: [
-        { emoji: '🥂', title: 'Hosting a dinner party', sub: 'Big table, open bar cart', styles: { farmhouse: 1, midcentury: 1, industrial: 1 } },
-        { emoji: '🍿', title: 'Movie night for two (+ the dog)', sub: 'Giant sofa, blankets, snacks', styles: { scandi: 1, boho: 1, japandi: 1 } },
-      ],
-    },
-    {
-      id: 'age',
-      prompt: 'Which building has our name on it?',
-      topic: 'New build vs. character',
-      options: [
-        { emoji: '🏗️', title: 'A brand-new build', sub: 'Everything works, nothing to fix', styles: { modern: 2, coastal: 1 } },
-        { emoji: '🏛️', title: 'An old building with character', sub: 'Moldings, creaky floors, a story', styles: { industrial: 1, farmhouse: 1, boho: 1, midcentury: 1 } },
-      ],
-    },
-    {
-      id: 'work',
-      prompt: 'Working from home looks like…',
-      topic: 'Home office',
-      options: [
-        { emoji: '🖥️', title: 'A real home office with a door', sub: 'Zoom-proof and focused', styles: { modern: 1, midcentury: 1 } },
-        { emoji: '💻', title: 'Laptop wherever the light is', sub: 'Sofa, café table, balcony', styles: { boho: 1, coastal: 1, scandi: 1 } },
-      ],
-    },
-  ];
-
-  /* ------------------------------------------------------------------ */
-  /* Wishlist catalog                                                    */
-  /* ------------------------------------------------------------------ */
-  D.wishGroups = [
-    { id: 'location', label: 'Location & building', emoji: '📍' },
-    { id: 'kitchen', label: 'Kitchen & dining', emoji: '🍳' },
-    { id: 'living', label: 'Living spaces', emoji: '🛋️' },
-    { id: 'bedroom', label: 'Bedrooms & storage', emoji: '🛏️' },
-    { id: 'bath', label: 'Bathrooms', emoji: '🛁' },
-    { id: 'work', label: 'Work & hobbies', emoji: '🎨' },
-    { id: 'outdoor', label: 'Outdoor', emoji: '🌳' },
-    { id: 'pets', label: 'Pet life', emoji: '🐶' },
-    { id: 'comfort', label: 'Comfort & tech', emoji: '🔌' },
-  ];
-
-  D.wishItems = [
-    ['location', 'walkable', '🚶', 'Walkable to cafés, groceries & restaurants'],
-    ['location', 'transit', '🚇', 'Close to public transit'],
-    ['location', 'commute', '⏱️', 'Under 30 min commute for both of us'],
-    ['location', 'park', '🌲', 'Park or green space nearby'],
-    ['location', 'quiet', '🤫', 'Quiet street'],
-    ['location', 'elevator', '🛗', 'Elevator / no 4th-floor walk-ups'],
-    ['location', 'doorman', '📦', 'Doorman or secure package room'],
-    ['location', 'parking', '🚗', 'Dedicated parking spot'],
-    ['location', 'gym', '🏋️', 'Gym in the building'],
-    ['kitchen', 'island', '🏝️', 'Kitchen island with seating'],
-    ['kitchen', 'gasrange', '🔥', 'Gas range'],
-    ['kitchen', 'dishwasher', '🍽️', 'Dishwasher'],
-    ['kitchen', 'pantry', '🥫', 'Walk-in pantry'],
-    ['kitchen', 'dining', '🪑', 'Dining table that seats 6+'],
-    ['kitchen', 'coffeebar', '☕️', 'Coffee / tea station'],
-    ['living', 'fireplace', '🔥', 'Fireplace'],
-    ['living', 'highceil', '⬆️', 'High ceilings'],
-    ['living', 'sunlight', '🌞', 'South-facing light'],
-    ['living', 'movie', '🎬', 'Movie corner with projector'],
-    ['living', 'guestsleep', '🛋️', 'Sleeper sofa for guests'],
-    ['living', 'reading', '📖', 'Reading nook'],
-    ['bedroom', 'kingbed', '👑', 'King-size bed'],
-    ['bedroom', 'walkin', '👗', 'Walk-in closet'],
-    ['bedroom', 'guestroom', '🧳', 'Dedicated guest room'],
-    ['bedroom', 'blackout', '🌑', 'Blackout curtains'],
-    ['bedroom', 'nursery', '🍼', 'Room that could become a nursery'],
-    ['bedroom', 'storage', '📦', 'Lots of built-in storage'],
-    ['bath', 'twosinks', '🚰', 'Double vanity (two sinks!)'],
-    ['bath', 'tub', '🛁', 'Soaking tub'],
-    ['bath', 'rainshower', '🚿', 'Rain shower'],
-    ['bath', 'secondbath', '🚽', 'Second bathroom'],
-    ['bath', 'heatedfloor', '♨️', 'Heated bathroom floors'],
-    ['work', 'office', '🖥️', 'Home office with a door'],
-    ['work', 'twodesks', '👩‍💻', 'Two desks so we can both work'],
-    ['work', 'gymroom', '🧘', 'Yoga / workout corner'],
-    ['work', 'craft', '🎨', 'Hobby or craft space'],
-    ['work', 'music', '🎹', 'Room for instruments'],
-    ['outdoor', 'balcony', '🌇', 'Balcony'],
-    ['outdoor', 'yard', '🌳', 'Private yard'],
-    ['outdoor', 'garden', '🥕', 'Vegetable or herb garden'],
-    ['outdoor', 'grill', '🍖', 'Space to grill'],
-    ['outdoor', 'rooftop', '🌃', 'Rooftop access'],
-    ['pets', 'dogpark', '🐕', 'Dog park within walking distance'],
-    ['pets', 'petwash', '🧼', 'Pet washing station'],
-    ['pets', 'petfloors', '🐾', 'Scratch-proof floors'],
-    ['pets', 'dognook', '🦴', 'Built-in dog bed nook'],
-    ['pets', 'fenced', '🚧', 'Fenced outdoor area'],
-    ['comfort', 'inunit', '🧺', 'In-unit washer & dryer'],
-    ['comfort', 'ac', '❄️', 'Central air conditioning'],
-    ['comfort', 'smarthome', '🏠', 'Smart lights & thermostat'],
-    ['comfort', 'solar', '☀️', 'Solar / energy efficient'],
-    ['comfort', 'soundproof', '🔇', 'Good soundproofing'],
-    ['comfort', 'fiber', '📶', 'Fast fiber internet'],
-  ].map(([group, id, emoji, label]) => ({ group, id, emoji, label }));
-
-  D.votes = [
-    { id: 'must', emoji: '❤️', label: 'Must have', score: 3 },
-    { id: 'nice', emoji: '👍', label: 'Nice to have', score: 2 },
-    { id: 'meh', emoji: '🤷', label: "Don't care", score: 1 },
-    { id: 'no', emoji: '🙅', label: 'Rather not', score: 0 },
-  ];
 
   /* ------------------------------------------------------------------ */
   /* Furniture catalog — real-world sizes in inches (w × d)              */
@@ -419,23 +79,33 @@
   const roomColor = (name) => (D.roomTypes.find((r) => name.startsWith(r.name)) || {}).color || '#f2efe9';
 
   /* ------------------------------------------------------------------ */
-  /* Starter plans (feet). [name, x, y, w, h, outdoor?]                  */
+  /* Starter spaces (feet). [name, x, y, w, h, outdoor?]                 */
   /* items: [kind, x, y, rot?]                                           */
   /* ------------------------------------------------------------------ */
   D.templates = [
     {
-      id: 'blank',
-      name: 'Blank canvas',
-      emoji: '📄',
-      blurb: 'Start from nothing and draw every room yourselves.',
-      rooms: [],
-      items: [],
+      id: 'studio',
+      name: 'Studio loft',
+      emoji: '🛋️',
+      blurb: 'One big open room, a kitchen nook and a bathroom. ~560 sq ft.',
+      rooms: [
+        ['Studio', 0, 0, 22, 18],
+        ['Bathroom', 22, 0, 7, 8],
+        ['Kitchen', 22, 8, 7, 10],
+      ],
+      items: [
+        ['queen', 0.5, 0.5], ['nightstand', 5.7, 0.5], ['rug', 9, 5.5], ['sofa', 10.5, 14.5], ['coffee', 12, 9.5],
+        ['tv', 11.5, 0.3], ['armchair', 17, 8.5], ['table4', 1, 13.5], ['plant', 20, 0.5], ['dogbed', 1, 9.5],
+        ['toilet', 22.4, 0.3], ['vanity', 25.6, 0.3], ['shower', 25.6, 4.6],
+        ['counter', 26.6, 8.2, 90], ['fridge', 22.3, 8.2], ['range', 22.3, 10.9],
+        ['window', 6, -0.25], ['window', 14, 17.75], ['door', 22.3, 15],
+      ],
     },
     {
       id: 'studio1br',
       name: 'Cozy 1-bedroom',
       emoji: '🏢',
-      blurb: '~700 sq ft city apartment with a balcony. Perfect first place together.',
+      blurb: '~700 sq ft city apartment with a balcony.',
       rooms: [
         ['Kitchen', 0, 0, 10, 10],
         ['Living room', 10, 0, 15, 15],
@@ -456,7 +126,7 @@
       id: 'apt2br',
       name: '2-bedroom apartment',
       emoji: '🏙️',
-      blurb: '~930 sq ft with a home office. Room for guests, work and a pup.',
+      blurb: '~930 sq ft with a home office and a laundry nook.',
       rooms: [
         ['Living room', 0, 0, 16, 14],
         ['Kitchen', 16, 0, 15, 10],
@@ -503,69 +173,22 @@
         ['grill', 30, 38], ['plant', 2, 38], ['plant', 4.5, 38],
       ],
     },
+    {
+      id: 'blank',
+      name: 'Blank canvas',
+      emoji: '📄',
+      blurb: 'Start from nothing and draw every room yourselves.',
+      rooms: [],
+      items: [],
+    },
   ];
 
-  D.instantiateTemplate = (tpl, uid) => ({
+  /** Build a plan's rooms + items from a template. `empty` keeps only rooms, doors and windows. */
+  D.instantiateTemplate = (tpl, uid, empty = false) => ({
     rooms: tpl.rooms.map(([name, x, y, w, h, outdoor]) => ({ id: uid('r'), name, x, y, w, h, color: roomColor(name), outdoor: !!outdoor })),
-    items: tpl.items.map(([kind, x, y, rot = 0]) => {
+    items: tpl.items.filter(([kind]) => !empty || D.furnitureByKind[kind].layer === 3).map(([kind, x, y, rot = 0]) => {
       const c = D.furnitureByKind[kind];
       return { id: uid('i'), kind, name: c.name, x, y, w: c.w, h: c.h, rot, color: c.color };
     }),
   });
-
-  /* ------------------------------------------------------------------ */
-  /* Curated palettes for the mood board                                 */
-  /* ------------------------------------------------------------------ */
-  D.palettes = [
-    { id: 'p-oat', name: 'Oat Milk Latte', colors: ['#f4ede3', '#e2d3bf', '#c5a988', '#8c6e54', '#3e3229'] },
-    { id: 'p-sage', name: 'Sage Morning', colors: ['#f5f3ec', '#d9dfcf', '#a8b89a', '#6e8366', '#34402f'] },
-    { id: 'p-terra', name: 'Terracotta Sun', colors: ['#f7ebe1', '#efc9a8', '#d9825b', '#a8513a', '#4a2a22'] },
-    { id: 'p-sea', name: 'Sea Glass', colors: ['#f6f8f6', '#d6e6e3', '#a3c4c4', '#5c8d93', '#2a4b53'] },
-    { id: 'p-ink', name: 'Midnight Ink', colors: ['#eeeae4', '#b9b4ad', '#5c6878', '#2e3a4d', '#141a24'] },
-    { id: 'p-peach', name: 'Peach Fuzz', colors: ['#fff6ef', '#ffd9c2', '#f5a983', '#c7745a', '#5a3a33'] },
-    { id: 'p-forest', name: 'Forest Cabin', colors: ['#efe9df', '#bfae8f', '#6f7d5c', '#3b4a35', '#1f2620'] },
-    { id: 'p-retro', name: '70s Lounge', colors: ['#f4e9d8', '#e0a43a', '#c0583a', '#2f6f73', '#4a3428'] },
-    { id: 'p-blush', name: 'Blush & Plaster', colors: ['#faf3ef', '#f0d9d0', '#d9b1a3', '#a07d72', '#4d3b36'] },
-    { id: 'p-mono', name: 'Gallery White', colors: ['#ffffff', '#ededeb', '#c6c4bf', '#6f6c66', '#1a1a1a'] },
-    { id: 'p-lav', name: 'Lavender Haze', colors: ['#f7f5fa', '#e2dbee', '#b9aed3', '#7c6fa0', '#3a3350'] },
-    { id: 'p-shiba', name: 'Gougou Gold', colors: ['#fff4e6', '#f6d7aa', '#e8a868', '#b06f3c', '#2f2a26'] },
-  ];
-
-  /* ------------------------------------------------------------------ */
-  /* Conversation cards — prompts for talking about home                 */
-  /* ------------------------------------------------------------------ */
-  D.talkCards = [
-    'Describe the favorite room you have ever been in. What made it feel that way?',
-    'What did your childhood home get right — and what will we never repeat?',
-    'Walk me through our perfect lazy Sunday, hour by hour. Which rooms are we in?',
-    'What is one thing you own that must have a place of honor in our home?',
-    'How tidy is "tidy enough"? Show me with a number from 1 to 10.',
-    'When we argue, where in the house do you want to go to cool off?',
-    'How often do we want guests to stay over? Who sleeps where?',
-    'What sound do you want to hear when you walk in the door?',
-    'If we could only splurge on ONE room, which one and why?',
-    'Pets: how many, how big, and are they allowed on the sofa?',
-    'Where does the dog sleep? Be honest.',
-    'What should our home smell like?',
-    'Morning person or night owl — how should the bedroom handle both of us?',
-    'Where will we be in 5 years? Does this home still work then?',
-    'What is the commute you can live with, in minutes, without getting grumpy?',
-    'What part of a home makes you feel safe?',
-    'Rent or buy — what scares you about each?',
-    'Do we eat at a table, at the counter, or on the sofa?',
-    'What tradition do you want our home to be the place for?',
-    'Plants: will you actually water them? (We will remember this answer.)',
-    'Which chore do you secretly enjoy, and which one do you dread?',
-    'Describe our front door. Color, sound, what is next to it.',
-  ];
-
-  D.budgetCategories = [
-    { id: 'furniture', label: 'Furniture', emoji: '🛋️', color: '#d9825b' },
-    { id: 'appliances', label: 'Appliances', emoji: '🧊', color: '#5d8ca3' },
-    { id: 'reno', label: 'Renovation', emoji: '🔨', color: '#8c6e54' },
-    { id: 'decor', label: 'Decor & textiles', emoji: '🪴', color: '#8aa38b' },
-    { id: 'moving', label: 'Moving & fees', emoji: '📦', color: '#b9aed3' },
-    { id: 'pets', label: 'Pet stuff', emoji: '🐶', color: '#e8a868' },
-    { id: 'other', label: 'Other', emoji: '✨', color: '#9c958b' },
-  ];
 })(window.GG);
